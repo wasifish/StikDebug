@@ -8,6 +8,7 @@ final class LocationSimulationSession: ObservableObject {
     @Published private(set) var isActive = false
     @Published private(set) var coordinate: CLLocationCoordinate2D?
     @Published private(set) var routeCoordinates: [CLLocationCoordinate2D]?
+    @Published private(set) var isRoutePaused = false
     private var resendTimer: Timer?
     private var routeID: UUID?
 
@@ -34,6 +35,9 @@ final class LocationSimulationSession: ObservableObject {
         let routeID = UUID()
         self.routeID = routeID
         routeCoordinates = coordinates
+        if isRoutePaused {
+            isRoutePaused = false
+        }
         start(at: coordinate)
         return routeID
     }
@@ -45,6 +49,14 @@ final class LocationSimulationSession: ObservableObject {
     func clearRoute() {
         routeID = nil
         routeCoordinates = nil
+        if isRoutePaused {
+            isRoutePaused = false
+        }
+    }
+
+    func setRoutePaused(_ paused: Bool) {
+        guard routeID != nil, isRoutePaused != paused else { return }
+        isRoutePaused = paused
     }
 
     func pauseResending() {
