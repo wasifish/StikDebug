@@ -2002,8 +2002,8 @@ struct LocationSimulationView: View {
                     // The app was stalled for a while; continue from here instead of jumping ahead.
                     playbackStart = playbackStart.advanced(by: lateness)
                     deadline = playbackStart.advanced(by: .seconds(scheduledOffset))
-                } else if index < lastIndex,
-                          lateness > .seconds(RouteSimulationDefaults.playbackTickInterval) {
+                } else if lateness > .seconds(RouteSimulationDefaults.playbackTickInterval),
+                          lastIndex > index {
                     continue
                 }
 
