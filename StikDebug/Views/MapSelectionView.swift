@@ -1613,8 +1613,10 @@ struct LocationSimulationView: View {
             }
         } label: {
             Label(speedMenuTitle, systemImage: "speedometer")
-                .font(.footnote)
+                .font(.subheadline.weight(.semibold))
         }
+        .buttonStyle(.bordered)
+        .tint(.blue)
         .disabled(isRouteRunning)
     }
 
@@ -1633,13 +1635,15 @@ struct LocationSimulationView: View {
             }
         } label: {
             Label(repeatMode.title, systemImage: "repeat")
-                .font(.footnote)
+                .font(.subheadline.weight(.semibold))
         }
+        .buttonStyle(.bordered)
+        .tint(.blue)
         .disabled(isRouteRunning)
     }
 
     private var playbackOptionMenus: some View {
-        HStack(spacing: 20) {
+        HStack(spacing: 12) {
             speedMenu
             repeatMenu
         }
