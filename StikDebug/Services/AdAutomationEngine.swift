@@ -73,6 +73,8 @@ final class AdAutomationEngine: ObservableObject {
     private var sessionFolder: URL?
     private var logHandle: FileHandle?
     private var screenshotCount = 0
+    /// Why the run ended by itself, shown in front of the final status.
+    private var stopNote: String?
 
     private let client = AdRunnerClient.shared
     private static let tickInterval: TimeInterval = 2
@@ -137,6 +139,7 @@ final class AdAutomationEngine: ObservableObject {
         recentLog = []
         exportURL = nil
         screenshotCount = 0
+        stopNote = nil
         openSession()
         BackgroundAudioManager.shared.requestStart()
         BackgroundLocationManager.shared.requestStart()
@@ -162,7 +165,12 @@ final class AdAutomationEngine: ObservableObject {
         if let folder = sessionFolder {
             exportURL = Self.makeArchive(of: folder)
         }
-        status = String(format: "Stopped. Ads finished: %lld".localized, adsFinished)
+        let summary = String(format: "Stopped. Ads finished: %lld".localized, adsFinished)
+        if let stopNote {
+            status = stopNote + " " + summary
+        } else {
+            status = summary
+        }
     }
 
     // MARK: - Main loop
@@ -182,6 +190,7 @@ final class AdAutomationEngine: ObservableObject {
         var probeIndex = 0
         var closeTaps = 0
         var consecutiveErrors = 0
+        var emptyStarts = 0
 
         log("start; observeOnly=\(config.observeOnly) probe=\(config.probeCorners) maxAd=\(config.maxAdSeconds)s "
             + "start=\(config.startKeywords) confirm=\(config.confirmKeywords)")
@@ -270,16 +279,30 @@ final class AdAutomationEngine: ObservableObject {
                                 ? "Enter the text of the button that starts an ad.".localized
                                 : "Looking for the button that starts an ad…".localized
                         }
-                    } else if let startItem, adElapsed > 8 {
-                        // Back on the screen with the start button: the ad is over.
-                        if closeTaps > 0 || adElapsed > 20 {
-                            adsFinished += 1
+                    } else if let startItem {
+                        // The page with the start button is showing, so no ad is on
+                        // screen. Nothing else may be tapped here: the game's own
+                        // close button would dismiss this page.
+                        if adElapsed > 8 {
+                            if closeTaps > 0 || adElapsed > 20 {
+                                adsFinished += 1
+                                emptyStarts = 0
+                            } else {
+                                emptyStarts += 1
+                            }
+                            log("ad over after \(Int(adElapsed))s (start button visible: \(startItem.label)); "
+                                + "total \(adsFinished), empty starts \(emptyStarts)")
+                            phase = .idle
+                            lastAdEnded = Date()
+                            status = String(format: "Ads finished: %lld".localized, adsFinished)
+                            if emptyStarts >= 4 {
+                                // The button no longer starts an ad: the daily limit
+                                // is probably used up.
+                                log("the start button did not start an ad 4 times in a row; stopping")
+                                stopNote = "No more ads seem to be available.".localized
+                                break
+                            }
                         }
-                        log("ad over after \(Int(adElapsed))s (start button visible: \(startItem.label)); "
-                            + "total \(adsFinished)")
-                        phase = .idle
-                        lastAdEnded = Date()
-                        status = String(format: "Ads finished: %lld".localized, adsFinished)
                     } else if let keepWatching = items.first(where: {
                         Self.keepWatchingLabels.contains($0.label.trimmingCharacters(in: .whitespaces).lowercased())
                     }) {
