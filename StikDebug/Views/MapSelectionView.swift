@@ -968,6 +968,10 @@ struct LocationSimulationView: View {
         simulationSession.isRoutePaused ? "Resume".localized : "Pause".localized
     }
 
+    private var realLocationButtonTitle: String {
+        simulationSession.isRealLocationHeld ? "Back to Route".localized : "Real Location".localized
+    }
+
     private var pathEditStatusText: String {
         guard !pathWaypoints.isEmpty else {
             return "Tap the map to add path points in order.".localized
@@ -981,6 +985,9 @@ struct LocationSimulationView: View {
 
     private var routeStatusText: String {
         if simulationSession.routeCoordinates != nil {
+            if simulationSession.isRealLocationHeld {
+                return "Showing real location.".localized
+            }
             return simulationSession.isRoutePaused ? "Route paused.".localized : "Route simulation active.".localized
         }
         if isLoadingRoute {
@@ -1527,6 +1534,12 @@ struct LocationSimulationView: View {
 
             routeAttributionLink
 
+            if simulationSession.routeCoordinates != nil {
+                Button(realLocationButtonTitle, action: toggleRealLocation)
+                    .buttonStyle(.bordered)
+                    .disabled(isBusy)
+            }
+
             HStack(spacing: 12) {
                 Button("Stop", action: clear)
                     .buttonStyle(.bordered)
@@ -1634,6 +1647,10 @@ struct LocationSimulationView: View {
 
     private func toggleRoutePause() {
         simulationSession.setRoutePaused(!simulationSession.isRoutePaused)
+    }
+
+    private func toggleRealLocation() {
+        simulationSession.setRealLocationHeld(!simulationSession.isRealLocationHeld)
     }
 
     private func formattedSpeed(_ kilometersPerHour: Double) -> String {
@@ -1790,13 +1807,19 @@ struct LocationSimulationView: View {
         routeLoadTask = nil
         routeSpeedPrefetchTask?.cancel()
         routeSpeedPrefetchTask = nil
+        // While the real location is showing the simulation is already cleared (or
+        // about to be), so there may be nothing left to clear.
+        let wasShowingRealLocation = LocationSimulationSession.shared.isRealLocationHeld
         cancelRoutePlayback(resetMarker: true)
         stopResendLoop()
         LocationSimulationSession.shared.clearRoute()
         runLocationCommand(
             errorTitle: "Clear Failed".localized,
             errorMessage: { code in String(format: "Could not clear simulated location (error %@).".localized, "\(code)") },
-            operation: clear_simulated_location
+            operation: {
+                let code = clear_simulated_location()
+                return wasShowingRealLocation ? 0 : code
+            }
         ) {
             endBackgroundTask()
             LocationSimulationSession.shared.stop()
@@ -1975,26 +1998,6 @@ struct LocationSimulationView: View {
             // next cycle simply continues from there until the user stops it.
             while keepPlaying {
             for (index, sample) in samples.enumerated().dropFirst() {
-                if LocationSimulationSession.shared.isRoutePaused {
-                    // Hold the current position until the user resumes, then shift
-                    // the schedule by the time spent paused.
-                    let pauseStart = clock.now
-                    var lastResend = clock.now
-                    while LocationSimulationSession.shared.isRoutePaused {
-                        try? await Task.sleep(for: .seconds(RouteSimulationDefaults.pausePollInterval))
-                        guard !Task.isCancelled,
-                              LocationSimulationSession.shared.isCurrentRoute(routeID) else {
-                            return
-                        }
-                        if let heldCoordinate = lastSuccessfulCoordinate,
-                           lastResend.duration(to: clock.now) >= .seconds(RouteSimulationDefaults.pauseResendInterval) {
-                            _ = await sendLocationUpdate(for: heldCoordinate)
-                            lastResend = clock.now
-                        }
-                    }
-                    playbackStart = playbackStart.advanced(by: pauseStart.duration(to: clock.now))
-                }
-
                 scheduledOffset += sample.delayFromPrevious
                 var deadline = playbackStart.advanced(by: .seconds(scheduledOffset))
                 let lateness = deadline.duration(to: clock.now)
@@ -2011,6 +2014,56 @@ struct LocationSimulationView: View {
                 guard !Task.isCancelled,
                       LocationSimulationSession.shared.isCurrentRoute(routeID) else {
                     return
+                }
+
+                if LocationSimulationSession.shared.isRoutePaused ||
+                    LocationSimulationSession.shared.isRealLocationHeld {
+                    // Hold the current position until the user resumes, then shift
+                    // the schedule by the time spent holding. While the real
+                    // location is requested the simulation is cleared instead, and
+                    // nothing is sent until the user returns to the route. Every
+                    // command is issued from this task so they cannot overtake
+                    // each other.
+                    let holdStart = clock.now
+                    var lastResend = clock.now
+                    var isShowingRealLocation = false
+                    while LocationSimulationSession.shared.isRoutePaused ||
+                            LocationSimulationSession.shared.isRealLocationHeld {
+                        let wantsRealLocation = LocationSimulationSession.shared.isRealLocationHeld
+                        if wantsRealLocation && !isShowingRealLocation {
+                            let clearCode = await sendLocationClear()
+                            guard LocationSimulationSession.shared.isCurrentRoute(routeID) else { return }
+                            if clearCode == 0 {
+                                isShowingRealLocation = true
+                            } else {
+                                await MainActor.run {
+                                    LocationSimulationSession.shared.setRealLocationHeld(false)
+                                    alertTitle = "Clear Failed".localized
+                                    alertMessage = String(format: "Could not clear simulated location (error %@).".localized, "\(clearCode)")
+                                    showAlert = true
+                                }
+                            }
+                        } else if !wantsRealLocation && isShowingRealLocation {
+                            isShowingRealLocation = false
+                            if let heldCoordinate = lastSuccessfulCoordinate {
+                                _ = await sendLocationUpdate(for: heldCoordinate)
+                                lastResend = clock.now
+                            }
+                        }
+
+                        try? await Task.sleep(for: .seconds(RouteSimulationDefaults.pausePollInterval))
+                        guard !Task.isCancelled,
+                              LocationSimulationSession.shared.isCurrentRoute(routeID) else {
+                            return
+                        }
+                        if !isShowingRealLocation,
+                           let heldCoordinate = lastSuccessfulCoordinate,
+                           lastResend.duration(to: clock.now) >= .seconds(RouteSimulationDefaults.pauseResendInterval) {
+                            _ = await sendLocationUpdate(for: heldCoordinate)
+                            lastResend = clock.now
+                        }
+                    }
+                    playbackStart = playbackStart.advanced(by: holdStart.duration(to: clock.now))
                 }
 
                 let code = await sendLocationUpdate(for: sample.coordinate)
@@ -2059,6 +2112,14 @@ struct LocationSimulationView: View {
         await withCheckedContinuation { continuation in
             LocationSimulationCommandQueue.shared.async {
                 continuation.resume(returning: locationUpdateCode(for: coordinate))
+            }
+        }
+    }
+
+    private func sendLocationClear() async -> Int32 {
+        await withCheckedContinuation { continuation in
+            LocationSimulationCommandQueue.shared.async {
+                continuation.resume(returning: clear_simulated_location())
             }
         }
     }
