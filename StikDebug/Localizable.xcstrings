@@ -9312,6 +9312,23 @@
           }
         }
       }
+    },
+    "No more ads seem to be available.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No more ads seem to be available."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "看起來沒有廣告可看了。"
+          }
+        }
+      }
     }
   },
   "version": "1.3"
