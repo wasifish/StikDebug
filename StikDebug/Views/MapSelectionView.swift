@@ -45,11 +45,40 @@ private enum RouteSimulationDefaults {
     static let playbackTickInterval: TimeInterval = 0.5
     static let minimumSpeedMetersPerSecond: CLLocationSpeed = 1.0
     static let importedRouteFallbackSpeedMetersPerSecond: CLLocationSpeed = 13.4
+    static let playbackResyncThreshold: TimeInterval = 5
+    static let pausePollInterval: TimeInterval = 0.25
+    static let pauseResendInterval: TimeInterval = 4
+    static let maximumPlaybackSampleCount = 200_000
+    static let customSpeedRangeKilometersPerHour: ClosedRange<Double> = 0.5...2000
+    static let customSpeedPresets: [(title: String, kilometersPerHour: Double)] = [
+        ("Walk", 5),
+        ("Run", 10),
+        ("Bike", 20),
+        ("Car", 50),
+        ("Highway", 100)
+    ]
 }
 
 private struct RoutePlaybackSample {
     let coordinate: CLLocationCoordinate2D
     let delayFromPrevious: TimeInterval
+}
+
+private enum RouteRepeatMode: String, CaseIterable {
+    case once
+    case backAndForth
+    case loop
+
+    var title: String {
+        switch self {
+        case .once:
+            return "One way"
+        case .backAndForth:
+            return "Back and forth"
+        case .loop:
+            return "Loop"
+        }
+    }
 }
 
 private struct OpenStreetMapWay {
@@ -336,6 +365,89 @@ private func buildPlaybackSamples(
     }
 
     return samples
+}
+
+private func buildConstantSpeedPlaybackSamples(
+    from coordinates: [CLLocationCoordinate2D],
+    speedMetersPerSecond: CLLocationSpeed
+) -> [RoutePlaybackSample] {
+    guard let firstCoordinate = coordinates.first else { return [] }
+
+    let speed = max(speedMetersPerSecond, 0.1)
+    let totalTravelTime = distanceAlong(coordinates) / speed
+    // Very long or very slow routes use a coarser tick so the sample count stays bounded.
+    let tickInterval = max(
+        RouteSimulationDefaults.playbackTickInterval,
+        totalTravelTime / Double(RouteSimulationDefaults.maximumPlaybackSampleCount)
+    )
+    let stepDistance = speed * tickInterval
+
+    var samples = [RoutePlaybackSample(coordinate: firstCoordinate, delayFromPrevious: 0)]
+    var distanceUntilNextSample = stepDistance
+
+    for (start, end) in zip(coordinates, coordinates.dropFirst()) {
+        let segmentDistance = CLLocation(latitude: start.latitude, longitude: start.longitude)
+            .distance(from: CLLocation(latitude: end.latitude, longitude: end.longitude))
+        guard segmentDistance > 0 else { continue }
+
+        var traveled: CLLocationDistance = 0
+        while segmentDistance - traveled >= distanceUntilNextSample {
+            traveled += distanceUntilNextSample
+            let point = interpolateCoordinate(
+                from: start,
+                to: end,
+                fraction: min(traveled / segmentDistance, 1)
+            )
+            samples.append(RoutePlaybackSample(coordinate: point, delayFromPrevious: tickInterval))
+            distanceUntilNextSample = stepDistance
+        }
+        distanceUntilNextSample -= segmentDistance - traveled
+    }
+
+    let leftoverDistance = stepDistance - distanceUntilNextSample
+    if leftoverDistance > 0.01, let lastCoordinate = coordinates.last {
+        samples.append(RoutePlaybackSample(
+            coordinate: lastCoordinate,
+            delayFromPrevious: leftoverDistance / speed
+        ))
+    }
+
+    return samples
+}
+
+/// Extends one-way samples into a cycle that ends where it started, so it can repeat.
+private func repeatingCycleSamples(
+    from samples: [RoutePlaybackSample],
+    mode: RouteRepeatMode,
+    closingSpeedMetersPerSecond: CLLocationSpeed
+) -> [RoutePlaybackSample] {
+    guard samples.count > 1,
+          let firstSample = samples.first,
+          let lastSample = samples.last else {
+        return samples
+    }
+
+    var cycle = samples
+    switch mode {
+    case .once:
+        break
+    case .backAndForth:
+        // Walk the same samples backwards with the same timing.
+        for index in stride(from: samples.count - 1, to: 0, by: -1) {
+            cycle.append(RoutePlaybackSample(
+                coordinate: samples[index - 1].coordinate,
+                delayFromPrevious: samples[index].delayFromPrevious
+            ))
+        }
+    case .loop:
+        // Close the loop with a straight segment from the last point to the first.
+        let closingSamples = buildConstantSpeedPlaybackSamples(
+            from: [lastSample.coordinate, firstSample.coordinate],
+            speedMetersPerSecond: closingSpeedMetersPerSecond
+        )
+        cycle.append(contentsOf: closingSamples.dropFirst())
+    }
+    return cycle
 }
 
 private func prefetchRoutePlaybackSamples(
@@ -760,6 +872,15 @@ struct LocationSimulationView: View {
     @State private var simulatedCoordinate: CLLocationCoordinate2D?
     @State private var routeRequestID = UUID()
 
+    // Custom path and speed
+    @State private var isEditingPath = false
+    @State private var pathWaypoints: [CLLocationCoordinate2D] = []
+    @State private var showCustomSpeedPrompt = false
+    @State private var customSpeedInput = ""
+    @AppStorage("routeUseCustomSpeed") private var useCustomSpeed = true
+    @AppStorage("routeCustomSpeedKmh") private var customSpeedKmh = 5.0
+    @AppStorage("routeRepeatMode") private var repeatMode: RouteRepeatMode = .once
+
     private static let routeDurationFormatter: DateComponentsFormatter = {
         let formatter = DateComponentsFormatter()
         formatter.allowedUnits = [.hour, .minute]
@@ -822,16 +943,45 @@ struct LocationSimulationView: View {
             value: routePlan.distance / 1000,
             unit: UnitLength.kilometers
         ).formatted(.measurement(width: .abbreviated, usage: .road))
-        let durationText = Self.routeDurationFormatter.string(from: routePlan.expectedTravelTime)
+        let travelTime = useCustomSpeed
+            ? routePlan.distance / customSpeedMetersPerSecond
+            : routePlan.expectedTravelTime
+        let durationText = Self.routeDurationFormatter.string(from: travelTime)
         if let durationText, !durationText.isEmpty {
             return "\(distanceText) • ETA \(durationText)"
         }
         return distanceText
     }
 
+    private var customSpeedMetersPerSecond: CLLocationSpeed {
+        let range = RouteSimulationDefaults.customSpeedRangeKilometersPerHour
+        return min(max(customSpeedKmh, range.lowerBound), range.upperBound) / 3.6
+    }
+
+    private var speedMenuTitle: String {
+        useCustomSpeed
+            ? "Speed: \(formattedSpeed(customSpeedKmh)) km/h"
+            : "Speed: road limits"
+    }
+
+    private var pauseButtonTitle: String {
+        simulationSession.isRoutePaused ? "Resume" : "Pause"
+    }
+
+    private var pathEditStatusText: String {
+        guard !pathWaypoints.isEmpty else {
+            return "Tap the map to add path points in order."
+        }
+        let distanceText = Measurement(
+            value: distanceAlong(pathWaypoints) / 1000,
+            unit: UnitLength.kilometers
+        ).formatted(.measurement(width: .abbreviated, usage: .road))
+        return "\(pathWaypoints.count) points • \(distanceText)"
+    }
+
     private var routeStatusText: String {
         if simulationSession.routeCoordinates != nil {
-            return "Route simulation active."
+            return simulationSession.isRoutePaused ? "Route paused." : "Route simulation active."
         }
         if isLoadingRoute {
             return "Calculating route…"
@@ -894,7 +1044,16 @@ struct LocationSimulationView: View {
         ZStack(alignment: .bottom) {
             MapReader { proxy in
                 Map(position: $position) {
-                    if hasRouteContext {
+                    if isEditingPath {
+                        if let pathPolyline = makeRoutePolyline(for: pathWaypoints) {
+                            MapPolyline(pathPolyline)
+                                .stroke(.orange.opacity(0.9), lineWidth: 4)
+                        }
+                        ForEach(pathWaypoints.indices, id: \.self) { index in
+                            Marker(String(index + 1), coordinate: pathWaypoints[index])
+                                .tint(.orange)
+                        }
+                    } else if hasRouteContext {
                         if let routePolyline {
                             MapPolyline(routePolyline)
                                 .stroke(.blue.opacity(0.8), lineWidth: 5)
@@ -919,7 +1078,11 @@ struct LocationSimulationView: View {
                 .mapStyle(.standard(elevation: .realistic))
                 .onTapGesture { point in
                     if let loc = proxy.convert(point, from: .local) {
-                        applySelection(loc)
+                        if isEditingPath {
+                            pathWaypoints.append(loc)
+                        } else {
+                            applySelection(loc)
+                        }
                     }
                 }
                 .mapControls {
@@ -952,7 +1115,9 @@ struct LocationSimulationView: View {
                             .font(.footnote)
                     }
 
-                    if hasRouteContext {
+                    if isEditingPath {
+                        pathEditControls
+                    } else if hasRouteContext {
                         routeControls
                     } else {
                         pinControls
@@ -1011,14 +1176,26 @@ struct LocationSimulationView: View {
                 } label: {
                     Image(systemName: "point.topleft.down.curvedto.point.bottomright.up")
                 }
+                .disabled(isBusy || isRouteRunning || isEditingPath)
+
+                Button {
+                    if isEditingPath {
+                        cancelPathEditing()
+                    } else {
+                        startPathEditing()
+                    }
+                } label: {
+                    Image(systemName: isEditingPath ? "hand.draw.fill" : "hand.draw")
+                }
                 .disabled(isBusy || isRouteRunning)
+                .accessibilityLabel("Draw Path")
 
                 Button {
                     showCoordinateImporter = true
                 } label: {
                     Image(systemName: "square.and.arrow.down")
                 }
-                .disabled(isBusy || isRouteRunning || isImportingCoordinates)
+                .disabled(isBusy || isRouteRunning || isImportingCoordinates || isEditingPath)
                 .accessibilityLabel("Import Coordinates")
             }
             ToolbarItem(placement: .topBarTrailing) {
@@ -1045,6 +1222,14 @@ struct LocationSimulationView: View {
             Button("Cancel", role: .cancel) { newBookmarkName = "" }
         } message: {
             Text("Enter a name for this location.")
+        }
+        .alert("Custom Speed", isPresented: $showCustomSpeedPrompt) {
+            TextField("km/h", text: $customSpeedInput)
+                .keyboardType(.decimalPad)
+            Button("Save") { applyCustomSpeedInput() }
+            Button("Cancel", role: .cancel) { customSpeedInput = "" }
+        } message: {
+            Text("Enter the movement speed in km/h.")
         }
         .sheet(isPresented: $showBookmarks) {
             BookmarksView(bookmarks: $bookmarks) { bookmark in
@@ -1161,6 +1346,12 @@ struct LocationSimulationView: View {
 
         searchText = ""
         searchCompleter.results = []
+        if isEditingPath {
+            for importedCoordinate in importedCoordinates {
+                appendPathWaypoint(importedCoordinate)
+            }
+            return
+        }
         applyImportedCoordinates(importedCoordinates, sourceName: "Imported")
     }
 
@@ -1198,7 +1389,8 @@ struct LocationSimulationView: View {
 
     private func applyImportedCoordinates(
         _ importedCoordinates: [CLLocationCoordinate2D],
-        sourceName: String
+        sourceName: String,
+        prefetchRoadSpeeds: Bool = true
     ) {
         guard !isRouteRunning else { return }
 
@@ -1248,6 +1440,16 @@ struct LocationSimulationView: View {
 
         if let routePolyline {
             position = .rect(routePolyline.boundingMapRect)
+        }
+
+        guard prefetchRoadSpeeds else {
+            // Hand-drawn paths do not follow roads, so skip the speed limit lookup.
+            routePlaybackSamples = buildPlaybackSamples(
+                from: displayCoordinates,
+                speedWays: [],
+                fallbackSpeedMetersPerSecond: fallbackSpeed
+            )
+            return
         }
 
         let requestID = UUID()
@@ -1321,6 +1523,8 @@ struct LocationSimulationView: View {
                     .foregroundStyle(.secondary)
             }
 
+            playbackOptionMenus
+
             routeAttributionLink
 
             HStack(spacing: 12) {
@@ -1329,22 +1533,172 @@ struct LocationSimulationView: View {
                     .tint(.red)
                     .disabled(!pairingExists || isBusy || !hasActiveSimulation)
 
-                Button("Play Route", action: simulateRoute)
-                    .buttonStyle(.borderedProminent)
-                    .disabled(
-                        !pairingExists ||
-                        isBusy ||
-                        isLoadingRoute ||
-                        isPrefetchingRouteSpeeds ||
-                        routePlan == nil ||
-                        routePlaybackSamples.isEmpty
-                    )
+                if simulationSession.routeCoordinates != nil {
+                    Button(pauseButtonTitle, action: toggleRoutePause)
+                        .buttonStyle(.borderedProminent)
+                        .disabled(isBusy)
+                } else {
+                    Button("Play Route", action: simulateRoute)
+                        .buttonStyle(.borderedProminent)
+                        .disabled(
+                            !pairingExists ||
+                            isBusy ||
+                            isLoadingRoute ||
+                            routePlan == nil ||
+                            (!useCustomSpeed && (isPrefetchingRouteSpeeds || routePlaybackSamples.isEmpty))
+                        )
+                }
 
                 Button("Reset", action: resetRouteSelection)
                     .buttonStyle(.bordered)
                     .disabled(isBusy || isRouteRunning)
             }
         }
+    }
+
+    private var pathEditControls: some View {
+        VStack(spacing: 10) {
+            Text(pathEditStatusText)
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+
+            playbackOptionMenus
+
+            HStack(spacing: 12) {
+                Button("Cancel", action: cancelPathEditing)
+                    .buttonStyle(.bordered)
+                    .tint(.red)
+
+                Button("Undo", action: removeLastPathWaypoint)
+                    .buttonStyle(.bordered)
+                    .disabled(pathWaypoints.isEmpty)
+
+                Button("Done", action: finishPathEditing)
+                    .buttonStyle(.borderedProminent)
+                    .disabled(pathWaypoints.count < 2)
+            }
+        }
+    }
+
+    private var speedMenu: some View {
+        Menu {
+            Button("Road speed limits") {
+                useCustomSpeed = false
+            }
+            Divider()
+            ForEach(RouteSimulationDefaults.customSpeedPresets.indices, id: \.self) { index in
+                let preset = RouteSimulationDefaults.customSpeedPresets[index]
+                let title = "\(preset.title) (\(formattedSpeed(preset.kilometersPerHour)) km/h)"
+                Button(title) {
+                    setCustomSpeed(preset.kilometersPerHour)
+                }
+            }
+            Divider()
+            Button("Custom…") {
+                customSpeedInput = formattedSpeed(customSpeedKmh)
+                showCustomSpeedPrompt = true
+            }
+        } label: {
+            Label(speedMenuTitle, systemImage: "speedometer")
+                .font(.footnote)
+        }
+        .disabled(isRouteRunning)
+    }
+
+    private var repeatMenu: some View {
+        Menu {
+            ForEach(RouteRepeatMode.allCases, id: \.self) { mode in
+                Button {
+                    repeatMode = mode
+                } label: {
+                    if mode == repeatMode {
+                        Label(mode.title, systemImage: "checkmark")
+                    } else {
+                        Text(mode.title)
+                    }
+                }
+            }
+        } label: {
+            Label(repeatMode.title, systemImage: "repeat")
+                .font(.footnote)
+        }
+        .disabled(isRouteRunning)
+    }
+
+    private var playbackOptionMenus: some View {
+        HStack(spacing: 20) {
+            speedMenu
+            repeatMenu
+        }
+    }
+
+    private func toggleRoutePause() {
+        simulationSession.setRoutePaused(!simulationSession.isRoutePaused)
+    }
+
+    private func formattedSpeed(_ kilometersPerHour: Double) -> String {
+        String(format: "%g", kilometersPerHour)
+    }
+
+    private func setCustomSpeed(_ kilometersPerHour: Double) {
+        let range = RouteSimulationDefaults.customSpeedRangeKilometersPerHour
+        customSpeedKmh = min(max(kilometersPerHour, range.lowerBound), range.upperBound)
+        useCustomSpeed = true
+    }
+
+    private func applyCustomSpeedInput() {
+        let normalized = customSpeedInput
+            .replacingOccurrences(of: ",", with: ".")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        customSpeedInput = ""
+        guard let value = Double(normalized), value.isFinite, value > 0 else { return }
+        setCustomSpeed(value)
+    }
+
+    private func startPathEditing() {
+        guard !isBusy, !isRouteRunning else { return }
+        let startingCoordinate = coordinate ?? simulatedCoordinate
+        if hasRouteContext {
+            resetRouteSelection()
+        }
+        searchText = ""
+        searchCompleter.results = []
+        if let startingCoordinate {
+            pathWaypoints = [startingCoordinate]
+        } else {
+            pathWaypoints = []
+        }
+        isEditingPath = true
+    }
+
+    private func cancelPathEditing() {
+        isEditingPath = false
+        pathWaypoints = []
+    }
+
+    private func removeLastPathWaypoint() {
+        guard !pathWaypoints.isEmpty else { return }
+        pathWaypoints.removeLast()
+    }
+
+    private func appendPathWaypoint(_ coordinate: CLLocationCoordinate2D) {
+        guard CLLocationCoordinate2DIsValid(coordinate) else { return }
+        pathWaypoints.append(coordinate)
+        position = .region(
+            MKCoordinateRegion(
+                center: coordinate,
+                latitudinalMeters: 1000,
+                longitudinalMeters: 1000
+            )
+        )
+    }
+
+    private func finishPathEditing() {
+        let waypoints = pathWaypoints
+        guard waypoints.count > 1 else { return }
+        isEditingPath = false
+        pathWaypoints = []
+        applyImportedCoordinates(waypoints, sourceName: "Path", prefetchRoadSpeeds: false)
     }
 
     private func simulate() {
@@ -1366,10 +1720,25 @@ struct LocationSimulationView: View {
     private func simulateRoute() {
         guard pairingExists,
               let routePlan,
-              let firstCoordinate = routePlaybackSamples.first?.coordinate,
               !isBusy else {
             return
         }
+        let oneWaySamples = useCustomSpeed
+            ? buildConstantSpeedPlaybackSamples(
+                from: routePlan.displayCoordinates,
+                speedMetersPerSecond: customSpeedMetersPerSecond
+            )
+            : routePlaybackSamples
+        let selectedRepeatMode = repeatMode
+        let playbackSamples = repeatingCycleSamples(
+            from: oneWaySamples,
+            mode: selectedRepeatMode,
+            closingSpeedMetersPerSecond: useCustomSpeed
+                ? customSpeedMetersPerSecond
+                : RouteSimulationDefaults.importedRouteFallbackSpeedMetersPerSecond
+        )
+        let repeatsPlayback = selectedRepeatMode != .once && playbackSamples.count > 1
+        guard let firstCoordinate = playbackSamples.first?.coordinate else { return }
         stopResendLoop()
         cancelRoutePlayback(resetMarker: false)
         runLocationCommand(
@@ -1386,7 +1755,7 @@ struct LocationSimulationView: View {
             )
             simulatedCoordinate = nil
             routePlaybackCoordinate = firstCoordinate
-            startRoutePlayback(routeID: routeID)
+            startRoutePlayback(routeID: routeID, samples: playbackSamples, repeats: repeatsPlayback)
         }
     }
 
@@ -1470,6 +1839,10 @@ struct LocationSimulationView: View {
 
     private func applySelection(_ coordinate: CLLocationCoordinate2D) {
         guard !isRouteRunning else { return }
+        if isEditingPath {
+            appendPathWaypoint(coordinate)
+            return
+        }
         if hasRouteContext {
             resetRouteSelection()
         }
@@ -1586,12 +1959,55 @@ struct LocationSimulationView: View {
         }
     }
 
-    private func startRoutePlayback(routeID: UUID) {
+    private func startRoutePlayback(routeID: UUID, samples: [RoutePlaybackSample], repeats: Bool) {
         routePlaybackTask = Task {
-            var lastSuccessfulCoordinate = routePlaybackSamples.first?.coordinate
+            var lastSuccessfulCoordinate = samples.first?.coordinate
 
-            for sample in routePlaybackSamples.dropFirst() {
-                try? await Task.sleep(for: .seconds(sample.delayFromPrevious))
+            // Samples are scheduled against a clock so the time spent sending each
+            // update does not slow the route below the requested speed.
+            let clock = ContinuousClock()
+            var playbackStart = clock.now
+            var scheduledOffset: TimeInterval = 0
+            let lastIndex = samples.count - 1
+            var keepPlaying = true
+
+            // A repeating route ends each cycle back at its first sample, so the
+            // next cycle simply continues from there until the user stops it.
+            while keepPlaying {
+            for (index, sample) in samples.enumerated().dropFirst() {
+                if LocationSimulationSession.shared.isRoutePaused {
+                    // Hold the current position until the user resumes, then shift
+                    // the schedule by the time spent paused.
+                    let pauseStart = clock.now
+                    var lastResend = clock.now
+                    while LocationSimulationSession.shared.isRoutePaused {
+                        try? await Task.sleep(for: .seconds(RouteSimulationDefaults.pausePollInterval))
+                        guard !Task.isCancelled,
+                              LocationSimulationSession.shared.isCurrentRoute(routeID) else {
+                            return
+                        }
+                        if let heldCoordinate = lastSuccessfulCoordinate,
+                           lastResend.duration(to: clock.now) >= .seconds(RouteSimulationDefaults.pauseResendInterval) {
+                            _ = await sendLocationUpdate(for: heldCoordinate)
+                            lastResend = clock.now
+                        }
+                    }
+                    playbackStart = playbackStart.advanced(by: pauseStart.duration(to: clock.now))
+                }
+
+                scheduledOffset += sample.delayFromPrevious
+                var deadline = playbackStart.advanced(by: .seconds(scheduledOffset))
+                let lateness = deadline.duration(to: clock.now)
+                if lateness > .seconds(RouteSimulationDefaults.playbackResyncThreshold) {
+                    // The app was stalled for a while; continue from here instead of jumping ahead.
+                    playbackStart = playbackStart.advanced(by: lateness)
+                    deadline = playbackStart.advanced(by: .seconds(scheduledOffset))
+                } else if index < lastIndex,
+                          lateness > .seconds(RouteSimulationDefaults.playbackTickInterval) {
+                    continue
+                }
+
+                try? await Task.sleep(until: deadline, clock: clock)
                 guard !Task.isCancelled,
                       LocationSimulationSession.shared.isCurrentRoute(routeID) else {
                     return
@@ -1621,6 +2037,8 @@ struct LocationSimulationView: View {
                     routePlaybackCoordinate = sample.coordinate
                     LocationSimulationSession.shared.updateCoordinate(sample.coordinate)
                 }
+            }
+            keepPlaying = repeats && samples.count > 1 && !Task.isCancelled
             }
 
             await MainActor.run {
