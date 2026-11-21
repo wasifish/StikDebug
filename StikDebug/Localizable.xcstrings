@@ -15,6 +15,12 @@
             "state": "translated",
             "value": "使用 StikDebug 为已安装应用启用 JIT 编译。"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用 StikDebug 為已安裝的 App 啟用 JIT 編譯。"
+          }
         }
       }
     },
@@ -31,6 +37,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "应用"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "App"
           }
         }
       }
@@ -49,6 +61,12 @@
             "state": "translated",
             "value": "需要启用 JIT 的应用"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "要啟用 JIT 的 App"
+          }
         }
       }
     },
@@ -64,7 +82,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value":  "您需要为哪个应用启用 JIT ？"
+            "value": "您需要为哪个应用启用 JIT ？"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "要為哪個 App 啟用 JIT？"
           }
         }
       }
@@ -83,6 +107,12 @@
             "state": "translated",
             "value": "为 %@ 启用 JIT"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "為 %@ 啟用 JIT"
+          }
         }
       }
     },
@@ -99,6 +129,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "使用 StikDebug 终止设备上的进程。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用 StikDebug 終止裝置上執行中的程序。"
           }
         }
       }
@@ -117,6 +153,12 @@
             "state": "translated",
             "value": "进程"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "程序"
+          }
         }
       }
     },
@@ -133,6 +175,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "需要终止的进程"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "要終止的程序"
           }
         }
       }
@@ -151,6 +199,12 @@
             "state": "translated",
             "value": "您需要终止哪个进程？"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "要終止哪個程序？"
+          }
         }
       }
     },
@@ -167,6 +221,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "进程 ID"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "程序 ID"
           }
         }
       }
@@ -185,6 +245,12 @@
             "state": "translated",
             "value": "终止特定 PID"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "直接指定要終止的 PID，不從清單選擇程序"
+          }
         }
       }
     },
@@ -201,6 +267,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "终止 %@"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "終止 %@"
           }
         }
       }
@@ -219,6 +291,12 @@
             "state": "translated",
             "value": "启用 JIT"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "啟用 JIT"
+          }
         }
       }
     },
@@ -235,6 +313,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "终止进程"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "終止程序"
           }
         }
       }
@@ -253,6 +337,12 @@
             "state": "translated",
             "value": "未检测到配对文件"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未偵測到配對檔"
+          }
         }
       }
     },
@@ -269,6 +359,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "导入设备的配对文件"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "匯入裝置的配對檔即可開始使用。"
           }
         }
       }
@@ -287,6 +383,12 @@
             "state": "translated",
             "value": "复制值"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "複製值"
+          }
         }
       }
     },
@@ -303,6 +405,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "复制键和值"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "複製鍵與值"
           }
         }
       }
@@ -321,6 +429,12 @@
             "state": "translated",
             "value": "无可用信息"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "沒有可用的資訊"
+          }
         }
       }
     },
@@ -337,6 +451,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "搜索设备信息…"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "搜尋裝置資訊…"
           }
         }
       }
@@ -355,6 +475,12 @@
             "state": "translated",
             "value": "设备信息"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "裝置資訊"
+          }
         }
       }
     },
@@ -371,6 +497,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "正在获取设备信息…"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在取得裝置資訊…"
           }
         }
       }
@@ -389,6 +521,12 @@
             "state": "translated",
             "value": "已复制"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已複製"
+          }
         }
       }
     },
@@ -402,6 +540,12 @@
           }
         },
         "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "好"
+          }
+        },
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
             "value": "好"
@@ -423,6 +567,12 @@
             "state": "translated",
             "value": "重载"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新載入"
+          }
         }
       }
     },
@@ -439,6 +589,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "导出"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "匯出"
           }
         }
       }
@@ -457,6 +613,12 @@
             "state": "translated",
             "value": "复制全部（文本）"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "複製全部（文字）"
+          }
         }
       }
     },
@@ -474,6 +636,12 @@
             "state": "translated",
             "value": "复制全部（CSV）"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "複製全部（CSV）"
+          }
         }
       }
     },
@@ -487,6 +655,12 @@
           }
         },
         "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分享…"
+          }
+        },
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
             "value": "分享…"
@@ -508,6 +682,12 @@
             "state": "translated",
             "value": "导入配对文件"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "匯入配對檔"
+          }
         }
       }
     },
@@ -524,6 +704,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "移除收藏"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "移除喜好項目"
           }
         }
       }
@@ -542,6 +728,12 @@
             "state": "translated",
             "value": "添加至收藏"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加入喜好項目"
+          }
         }
       }
     },
@@ -558,6 +750,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "复制包名"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "複製 Bundle ID"
           }
         }
       }
@@ -576,6 +774,12 @@
             "state": "translated",
             "value": "分配脚本"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "指定腳本"
+          }
         }
       }
     },
@@ -592,6 +796,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "重置脚本"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重置腳本"
           }
         }
       }
@@ -610,6 +820,12 @@
             "state": "translated",
             "value": "取消收藏"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消喜好"
+          }
         }
       }
     },
@@ -626,6 +842,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "收藏"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "喜好項目"
           }
         }
       }
@@ -644,6 +866,12 @@
             "state": "translated",
             "value": "复制 ID"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "複製 ID"
+          }
         }
       }
     },
@@ -660,6 +888,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "双击打开应用并启用 JIT。使用操作转盘进行收藏或复制包名。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "點兩下可打開 App 並啟用 JIT。使用動作轉輪可加入喜好項目或複製 Bundle ID。"
           }
         }
       }
@@ -678,6 +912,12 @@
             "state": "translated",
             "value": "启动"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "啟動"
+          }
         }
       }
     },
@@ -694,6 +934,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "正在发送启动请求"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在送出啟動要求。"
           }
         }
       }
@@ -712,6 +958,12 @@
             "state": "translated",
             "value": "双击启动此应用而不启用 JIT。"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "點兩下可啟動此 App 而不啟用 JIT。"
+          }
         }
       }
     },
@@ -728,6 +980,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "启动应用"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "啟動 App"
           }
         }
       }
@@ -746,6 +1004,12 @@
             "state": "translated",
             "value": "包名 %@"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bundle ID %@"
+          }
         }
       }
     },
@@ -762,6 +1026,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "已分配脚本 %@"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已指定腳本 %@"
           }
         }
       }
@@ -780,6 +1050,12 @@
             "state": "translated",
             "value": "从收藏中移除"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "從喜好項目中移除"
+          }
         }
       }
     },
@@ -796,6 +1072,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "收藏已满"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "喜好項目已滿"
           }
         }
       }
@@ -814,6 +1096,12 @@
             "state": "translated",
             "value": "已从收藏中移除"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已從喜好項目中移除"
+          }
         }
       }
     },
@@ -830,6 +1118,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "已添加至收藏"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已加入喜好項目"
           }
         }
       }
@@ -848,6 +1142,12 @@
             "state": "translated",
             "value": "包名 已复制"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已複製 Bundle ID"
+          }
         }
       }
     },
@@ -864,6 +1164,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "启动 %@"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "啟動 %@"
           }
         }
       }
@@ -882,6 +1188,12 @@
             "state": "translated",
             "value": "启动中"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "啟動中"
+          }
         }
       }
     },
@@ -898,6 +1210,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "就绪"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "就緒"
           }
         }
       }
@@ -916,6 +1234,12 @@
             "state": "translated",
             "value": "正在启动脚本..."
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在啟動腳本..."
+          }
         }
       }
     },
@@ -932,6 +1256,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "运行中 %@"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "執行中 %@"
           }
         }
       }
@@ -950,6 +1280,12 @@
             "state": "translated",
             "value": "保存"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "儲存"
+          }
         }
       }
     },
@@ -966,6 +1302,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "无脚本"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無腳本"
           }
         }
       }
@@ -984,6 +1326,12 @@
             "state": "translated",
             "value": "无脚本可用"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "沒有可用的腳本"
+          }
         }
       }
     },
@@ -1000,6 +1348,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "未找到脚本"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "找不到腳本"
           }
         }
       }
@@ -1018,6 +1372,12 @@
             "state": "translated",
             "value": "导入一个文件或选择无"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "匯入檔案或選擇「無」。"
+          }
         }
       }
     },
@@ -1034,6 +1394,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "点击新建或导入开始使用。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "點一下「新增」或「匯入」即可開始使用。"
           }
         }
       }
@@ -1052,6 +1418,12 @@
             "state": "translated",
             "value": "删除"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刪除"
+          }
         }
       }
     },
@@ -1068,6 +1440,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "复制文件名"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "複製檔名"
           }
         }
       }
@@ -1086,6 +1464,12 @@
             "state": "translated",
             "value": "复制路径"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "複製路徑"
+          }
         }
       }
     },
@@ -1102,6 +1486,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "设为默认"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "設為預設"
           }
         }
       }
@@ -1120,6 +1510,12 @@
             "state": "translated",
             "value": "搜索脚本…"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "搜尋腳本…"
+          }
         }
       }
     },
@@ -1136,6 +1532,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "选择脚本"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "選擇腳本"
           }
         }
       }
@@ -1154,6 +1556,12 @@
             "state": "translated",
             "value": "脚本"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "腳本"
+          }
         }
       }
     },
@@ -1170,6 +1578,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "新建"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新增"
           }
         }
       }
@@ -1188,6 +1602,12 @@
             "state": "translated",
             "value": "导入"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "匯入"
+          }
         }
       }
     },
@@ -1204,6 +1624,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "新建脚本"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新增腳本"
           }
         }
       }
@@ -1222,6 +1648,12 @@
             "state": "translated",
             "value": "文件名"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "檔名"
+          }
         }
       }
     },
@@ -1239,6 +1671,12 @@
             "state": "translated",
             "value": "创建"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "建立"
+          }
         }
       }
     },
@@ -1252,6 +1690,12 @@
           }
         },
         "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消"
+          }
+        },
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
             "value": "取消"
@@ -1273,6 +1717,12 @@
             "state": "translated",
             "value": "删除脚本？"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刪除腳本？"
+          }
         }
       }
     },
@@ -1289,6 +1739,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "删除 %@？此操作无法撤销。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "要刪除 %@ 嗎？此動作無法還原。"
           }
         }
       }
@@ -1307,6 +1763,12 @@
             "state": "translated",
             "value": "工作中…"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "處理中…"
+          }
         }
       }
     },
@@ -1323,6 +1785,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "点击这里连接 VPN"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "點這裡連接 VPN"
           }
         }
       }
@@ -1341,6 +1809,12 @@
             "state": "translated",
             "value": "将打开 LocalDevVPN"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "會打開 LocalDevVPN"
+          }
         }
       }
     },
@@ -1357,6 +1831,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "错误已复制"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已複製錯誤"
           }
         }
       }
@@ -1375,6 +1855,12 @@
             "state": "translated",
             "value": "复制错误"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "複製錯誤"
+          }
         }
       }
     },
@@ -1391,6 +1877,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "控制台"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主控台"
           }
         }
       }
@@ -1409,6 +1901,12 @@
             "state": "translated",
             "value": "系统"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "系統"
+          }
         }
       }
     },
@@ -1425,6 +1923,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "刷新"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新整理"
           }
         }
       }
@@ -1443,6 +1947,12 @@
             "state": "translated",
             "value": "清空"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清除"
+          }
         }
       }
     },
@@ -1459,6 +1969,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "复制日志"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "複製記錄"
           }
         }
       }
@@ -1477,6 +1993,12 @@
             "state": "translated",
             "value": "调整速度"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "調整速度"
+          }
         }
       }
     },
@@ -1493,6 +2015,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "调整系统日志速度"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "系統記錄速度"
           }
         }
       }
@@ -1511,6 +2039,12 @@
             "state": "translated",
             "value": "选择新日志会多快显示"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "選擇新記錄出現的速度。"
+          }
         }
       }
     },
@@ -1527,6 +2061,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "=== 设备信息 ==="
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "=== 裝置資訊 ==="
           }
         }
       }
@@ -1545,6 +2085,12 @@
             "state": "translated",
             "value": "iOS 版本: %@"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS 版本：%@"
+          }
         }
       }
     },
@@ -1561,6 +2107,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "设备名: %@"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "裝置：%@"
           }
         }
       }
@@ -1579,6 +2131,12 @@
             "state": "translated",
             "value": "型号: %@"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "型號：%@"
+          }
         }
       }
     },
@@ -1595,6 +2153,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "=== 日志条目 ==="
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "=== 記錄項目 ==="
           }
         }
       }
@@ -1613,6 +2177,12 @@
             "state": "translated",
             "value": "过滤日志"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "過濾記錄"
+          }
         }
       }
     },
@@ -1626,6 +2196,12 @@
           }
         },
         "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "idevice_log.txt"
+          }
+        },
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
             "value": "idevice_log.txt"
@@ -1647,6 +2223,12 @@
             "state": "translated",
             "value": "导出日志"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "匯出記錄"
+          }
         }
       }
     },
@@ -1663,6 +2245,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "为 LiveContainer 启用 JIT？"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "為 LiveContainer 啟用 JIT？"
           }
         }
       }
@@ -1681,6 +2269,12 @@
             "state": "translated",
             "value": "继续"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "繼續"
+          }
         }
       }
     },
@@ -1697,6 +2291,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "StikDebug 不应该手动为 LiveContainer 启用 JIT，正确的启动方式应该是在 LiveContainer 设置中选择 JIT 启用器为 StikDebug，然后在应用设置中启用 “使用 JIT 运行”，之后正常打开应用，它会自动跳转到 StikDebug 。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "StikDebug 不適合手動為 LiveContainer 啟用 JIT。請在 LiveContainer 設定中選擇 StikDebug，為你的 App 啟用「Run with JIT」，然後照常打開 App，它會自動跳回這裡。"
           }
         }
       }
@@ -1715,6 +2315,12 @@
             "state": "translated",
             "value": "为 StikDebug 启用 JIT？"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "為 StikDebug 啟用 JIT？"
+          }
         }
       }
     },
@@ -1732,6 +2338,12 @@
             "state": "translated",
             "value": "StikDebug 不应该手动附加到本体。为 StikDebug 启用 JIT 没有意义。请选择您真正需要启用 JIT 的应用。"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "StikDebug 不適合附加到自己。為 StikDebug 啟用 JIT 沒有任何作用。請改選你要啟用 JIT 的 App。"
+          }
         }
       }
     },
@@ -1745,6 +2357,12 @@
           }
         },
         "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完成"
+          }
+        },
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
             "value": "完成"
@@ -1766,6 +2384,12 @@
             "state": "translated",
             "value": "PID"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PID"
+          }
         }
       }
     },
@@ -1782,6 +2406,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "输入当前运行应用的 PID。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "輸入目前執行中 App 的程序識別碼。"
           }
         }
       }
@@ -1800,6 +2430,12 @@
             "state": "translated",
             "value": "脚本 (可选)"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "腳本（選用）"
+          }
         }
       }
     },
@@ -1816,6 +2452,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "已选择脚本"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已選擇的腳本"
           }
         }
       }
@@ -1834,6 +2476,12 @@
             "state": "translated",
             "value": "更改脚本"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更改腳本"
+          }
         }
       }
     },
@@ -1850,6 +2498,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "移除脚本"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "移除腳本"
           }
         }
       }
@@ -1868,6 +2522,12 @@
             "state": "translated",
             "value": "脚本执行已在设备上禁用。"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此裝置已停用腳本執行。"
+          }
         }
       }
     },
@@ -1884,6 +2544,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "通过 PID 启用 JIT"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "以 PID 啟用 JIT"
           }
         }
       }
@@ -1902,6 +2568,12 @@
             "state": "translated",
             "value": "执行脚本时发生错误。"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "執行腳本時發生錯誤。"
+          }
         }
       }
     },
@@ -1918,6 +2590,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "进程 %d"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "程序 %d"
           }
         }
       }
@@ -1936,6 +2614,12 @@
             "state": "translated",
             "value": "应用"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "App"
+          }
         }
       }
     },
@@ -1952,6 +2636,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "为 %@ 启动 JIT"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在為 %@ 啟動 JIT"
           }
         }
       }
@@ -1970,6 +2660,12 @@
             "state": "translated",
             "value": "无法启用 JIT"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無法啟用 JIT"
+          }
         }
       }
     },
@@ -1986,6 +2682,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "设备连接或开发者映像未准备就绪。请直接打开 StikDebug，等待连接完成，然后重试。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "裝置連線或開發者磁碟映像檔未及時就緒。請直接打開 StikDebug，等它完成連線後再試一次。"
           }
         }
       }
@@ -2004,6 +2706,12 @@
             "state": "translated",
             "value": "%@ 的 JIT 请求已完成"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 的 JIT 要求已完成"
+          }
         }
       }
     },
@@ -2020,6 +2728,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%@ 的 JIT 请求失败"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 的 JIT 啟用失敗"
           }
         }
       }
@@ -2038,6 +2752,12 @@
             "state": "translated",
             "value": "StikDebug 无法启动或附加到所选应用。请检查 VPN 是否已启用，配对文件是否为最新，并且应用仍已安装。"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "StikDebug 無法啟動或附加到所選的 App。請確認 VPN 已啟用、配對檔是最新的，且 App 仍已安裝。"
+          }
         }
       }
     },
@@ -2055,6 +2775,12 @@
             "state": "translated",
             "value": "应该指定包名 或 PID。"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "必須指定 Bundle ID 或 PID 其中之一。"
+          }
         }
       }
     },
@@ -2068,6 +2794,12 @@
           }
         },
         "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最近使用"
+          }
+        },
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
             "value": "最近使用"
@@ -2089,6 +2821,12 @@
             "state": "translated",
             "value": "具有 get-task-allow 权限的应用"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "具有 get-task-allow 的 App"
+          }
         }
       }
     },
@@ -2105,6 +2843,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "所有应用"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所有 App"
           }
         }
       }
@@ -2123,6 +2867,12 @@
             "state": "translated",
             "value": "从主页移除"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "從首頁移除"
+          }
         }
       }
     },
@@ -2139,6 +2889,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "添加到主页"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加入首頁"
           }
         }
       }
@@ -2157,6 +2913,12 @@
             "state": "translated",
             "value": "取消固定"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消釘選"
+          }
         }
       }
     },
@@ -2173,6 +2935,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "固定"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "釘選"
           }
         }
       }
@@ -2191,6 +2959,12 @@
             "state": "translated",
             "value": "没有匹配的应用"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "沒有符合的 App"
+          }
         }
       }
     },
@@ -2207,6 +2981,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "未找到 JIT 应用"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "找不到可用 JIT 的 App"
           }
         }
       }
@@ -2225,6 +3005,12 @@
             "state": "translated",
             "value": "尝试使用不同的名称或包标识符。"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "請試試其他名稱或 Bundle ID。"
+          }
         }
       }
     },
@@ -2241,6 +3027,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "StikDebug 只能连接到具有 \"get-task-allow\" 权限的应用。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "StikDebug 只能連接具有「get-task-allow」權限的 App。"
           }
         }
       }
@@ -2259,6 +3051,12 @@
             "state": "translated",
             "value": "无匹配结果"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "沒有符合的項目"
+          }
         }
       }
     },
@@ -2275,6 +3073,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "未找到应用"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "找不到 App"
           }
         }
       }
@@ -2293,6 +3097,12 @@
             "state": "translated",
             "value": "尝试使用不同的名称或包标识符。"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "請試試其他名稱或 Bundle ID。"
+          }
         }
       }
     },
@@ -2309,6 +3119,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "当设备配置文件已导入且核心设备组件已连接后，所有应用都会显示在此处。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "匯入裝置配對檔並連上 CoreDevice 後，所有 App 都會顯示在這裡。"
           }
         }
       }
@@ -2327,6 +3143,12 @@
             "state": "translated",
             "value": "收藏 (%d/4)"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "喜好項目（%d/4）"
+          }
         }
       }
     },
@@ -2343,6 +3165,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "正在启动 %@"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在啟動 %@"
           }
         }
       }
@@ -2361,6 +3189,12 @@
             "state": "translated",
             "value": "%@ 的启动请求已发送"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已送出 %@ 的啟動要求"
+          }
         }
       }
     },
@@ -2377,6 +3211,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%@ 启动失败"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 啟動失敗"
           }
         }
       }
@@ -2395,6 +3235,12 @@
             "state": "translated",
             "value": "启动应用"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "啟動 App"
+          }
         }
       }
     },
@@ -2411,6 +3257,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "搜索应用或包名"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "搜尋 App 或 Bundle ID"
           }
         }
       }
@@ -2429,6 +3281,12 @@
             "state": "translated",
             "value": "搜索"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "搜尋"
+          }
         }
       }
     },
@@ -2445,6 +3303,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "关闭"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "關閉"
           }
         }
       }
@@ -2463,6 +3327,12 @@
             "state": "translated",
             "value": "速度限制数据由 © OpenStreetMap 贡献者提供 (ODbL)"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "速限資料 © OpenStreetMap 貢獻者（ODbL）"
+          }
         }
       }
     },
@@ -2479,6 +3349,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "正在导入坐标…"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在匯入座標…"
           }
         }
       }
@@ -2497,6 +3373,12 @@
             "state": "translated",
             "value": "导入坐标"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "匯入座標"
+          }
         }
       }
     },
@@ -2513,6 +3395,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "搜索位置..."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "搜尋地點..."
           }
         }
       }
@@ -2531,6 +3419,12 @@
             "state": "translated",
             "value": "保存书签"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "儲存書籤"
+          }
         }
       }
     },
@@ -2547,6 +3441,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "名称"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "名稱"
           }
         }
       }
@@ -2565,6 +3465,12 @@
             "state": "translated",
             "value": "为这个位置输入一个名称。"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "為這個地點輸入名稱。"
+          }
         }
       }
     },
@@ -2578,6 +3484,12 @@
           }
         },
         "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "停止"
+          }
+        },
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
             "value": "停止"
@@ -2599,6 +3511,12 @@
             "state": "translated",
             "value": "模拟位置"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模擬定位"
+          }
         }
       }
     },
@@ -2615,6 +3533,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "点击地图放置标记"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "點一下地圖放置大頭針"
           }
         }
       }
@@ -2633,6 +3557,12 @@
             "state": "translated",
             "value": "播放路线"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "開始路線"
+          }
         }
       }
     },
@@ -2646,6 +3576,12 @@
           }
         },
         "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重置"
+          }
+        },
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
             "value": "重置"
@@ -2667,6 +3603,12 @@
             "state": "translated",
             "value": "正在解析位置…"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在解析地點…"
+          }
         }
       }
     },
@@ -2683,6 +3625,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "搜索起点和终点以构建路线。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "搜尋起點和目的地來建立路線。"
           }
         }
       }
@@ -2701,6 +3649,12 @@
             "state": "translated",
             "value": "模拟路线"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模擬路線"
+          }
         }
       }
     },
@@ -2717,6 +3671,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "使用路线"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用路線"
           }
         }
       }
@@ -2735,6 +3695,12 @@
             "state": "translated",
             "value": "无书签"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "沒有書籤"
+          }
         }
       }
     },
@@ -2751,6 +3717,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "在地图上放置一个标记，然后点击书签图标来保存位置。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在地圖上放置大頭針，再點書籤圖示即可儲存地點。"
           }
         }
       }
@@ -2769,6 +3741,12 @@
             "state": "translated",
             "value": "书签"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "書籤"
+          }
         }
       }
     },
@@ -2785,6 +3763,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "创建配对文件"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "建立配對檔"
           }
         }
       }
@@ -2803,6 +3787,12 @@
             "state": "translated",
             "value": "配对 iPhone 或 iPad"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "配對 iPhone 或 iPad"
+          }
         }
       }
     },
@@ -2819,6 +3809,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "配对 Apple TV"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "配對 Apple TV"
           }
         }
       }
@@ -2837,6 +3833,12 @@
             "state": "translated",
             "value": "不使用计算机创建配对文件。被配对的 iPhone 或 iPad 必须运行 iOS 或 iPadOS 27 或更高版本。也支持 Apple TV 配对。"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不用電腦就能建立配對檔。要配對的 iPhone 或 iPad 必須執行 iOS 或 iPadOS 27 或以上版本。也支援配對 Apple TV。"
+          }
         }
       }
     },
@@ -2853,6 +3855,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "正在搜索 Apple TV…"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在尋找 Apple TV…"
           }
         }
       }
@@ -2871,6 +3879,12 @@
             "state": "translated",
             "value": "选择一个 Apple TV"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "選擇 Apple TV"
+          }
         }
       }
     },
@@ -2887,6 +3901,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "在 Apple TV 上，打开设置 › 遥控器和设备 › 遥控应用和设备。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在 Apple TV 上打開「設定」›「遙控器與裝置」›「遙控器 App 與裝置」。"
           }
         }
       }
@@ -2905,6 +3925,12 @@
             "state": "translated",
             "value": "正在等待设备连接…"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在等待裝置連接…"
+          }
         }
       }
     },
@@ -2921,6 +3947,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "在被配对的设备上打开设置。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在要配對的裝置上打開「設定」。"
           }
         }
       }
@@ -2939,6 +3971,12 @@
             "state": "translated",
             "value": "转到隐私与安全 › 开发者模式。"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "前往「隱私權與安全性」›「開發者模式」。"
+          }
         }
       }
     },
@@ -2955,6 +3993,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "点击与 %@ 配对。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "點一下「與 %@ 配對」。"
           }
         }
       }
@@ -2973,6 +4017,12 @@
             "state": "translated",
             "value": "输入 StikDebug 显示的代码或通知中的代码。"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "輸入 StikDebug 或其通知中顯示的代碼。"
+          }
         }
       }
     },
@@ -2986,6 +4036,12 @@
           }
         },
         "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在 iPhone 或 iPad 上"
+          }
+        },
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
             "value": "在 iPhone 或 iPad 上"
@@ -3007,6 +4063,12 @@
             "state": "translated",
             "value": "在这台设备上，StikDebug 在打开设置时仍然在运行。对于另一台设备，请保持此屏幕打开以查看其代码。"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "如果是配對這台裝置，你打開「設定」時 StikDebug 會保持運作。如果是配對另一台裝置，請讓此畫面保持開啟以查看代碼。"
+          }
         }
       }
     },
@@ -3023,6 +4085,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "正在与 %@ 配对…"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在與 %@ 配對…"
           }
         }
       }
@@ -3041,6 +4109,12 @@
             "state": "translated",
             "value": "正在确认 iPhone 或 iPad 的配对…"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在確認 iPhone 或 iPad 的配對…"
+          }
         }
       }
     },
@@ -3057,6 +4131,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "在该设备的设置中输入此代码"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在這台裝置的「設定」中輸入此代碼"
           }
         }
       }
@@ -3075,6 +4155,12 @@
             "state": "translated",
             "value": "在另一台设备上输入此代码"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在另一台裝置上輸入此代碼"
+          }
         }
       }
     },
@@ -3091,6 +4177,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "六位数字代码"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "六位數代碼"
           }
         }
       }
@@ -3109,6 +4201,12 @@
             "state": "translated",
             "value": "配对"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "配對"
+          }
         }
       }
     },
@@ -3125,6 +4223,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "与 %@ 配对"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "與 %@ 配對"
           }
         }
       }
@@ -3143,6 +4247,12 @@
             "state": "translated",
             "value": "在 Apple TV 上输入显示的六位数字代码。"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "輸入 Apple TV 上顯示的六位數代碼。"
+          }
         }
       }
     },
@@ -3159,6 +4269,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "配对完成"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "配對完成"
           }
         }
       }
@@ -3177,6 +4293,12 @@
             "state": "translated",
             "value": "现在被 StikDebug 使用"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "現在由 StikDebug 使用"
+          }
         }
       }
     },
@@ -3193,6 +4315,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "放置在另一个应用中"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "放到其他 App"
           }
         }
       }
@@ -3211,6 +4339,12 @@
             "state": "translated",
             "value": "导出配对文件"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "匯出配對檔"
+          }
         }
       }
     },
@@ -3227,6 +4361,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "配对文件已保存在 StikDebug 中。您也可以将其放置在受支持的应用中或导出它。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "配對檔已儲存在 StikDebug 中。你也可以把它放到支援的 App 或匯出。"
           }
         }
       }
@@ -3245,6 +4385,12 @@
             "state": "translated",
             "value": "您可以将此配对文件放置在已配对设备上的受支持应用中或导出它。"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你可以把這個配對檔放到已配對裝置上支援的 App，或將它匯出。"
+          }
         }
       }
     },
@@ -3261,6 +4407,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "配对失败"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "配對失敗"
           }
         }
       }
@@ -3279,6 +4431,12 @@
             "state": "translated",
             "value": "重试"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "再試一次"
+          }
         }
       }
     },
@@ -3295,6 +4453,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "正在加载已安装的应用…"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在載入已安裝的 App…"
           }
         }
       }
@@ -3313,6 +4477,12 @@
             "state": "translated",
             "value": "未在此设备上找到受支持的应用。"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在這台裝置上找不到支援的 App。"
+          }
         }
       }
     },
@@ -3329,6 +4499,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "未在此配对设备上找到受支持的应用。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在已配對的裝置上找不到支援的 App。"
           }
         }
       }
@@ -3347,6 +4523,12 @@
             "state": "translated",
             "value": "选择一个应用"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "選擇 App"
+          }
         }
       }
     },
@@ -3363,6 +4545,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "LocalDevVPN 必须启用。只有已知远程配对文件目标的应用才会列出。所选应用必须允许访问其文档文件夹。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "必須啟用 LocalDevVPN。只會列出已知遠端配對檔存放位置的 App。所選 App 必須允許存取其「文件」檔案夾。"
           }
         }
       }
@@ -3381,6 +4569,12 @@
             "state": "translated",
             "value": "将两个设备保持在同一个 Wi-Fi 网络上。应用从配对设备中读取。所选应用必须允许访问其文档文件夹。"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "請讓兩台裝置連接同一個 Wi-Fi 網路。App 清單是從已配對的裝置讀取。所選 App 必須允許存取其「文件」檔案夾。"
+          }
         }
       }
     },
@@ -3397,6 +4591,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "在 %@ 中放置配对文件…"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在將配對檔放到 %@…"
           }
         }
       }
@@ -3415,6 +4615,12 @@
             "state": "translated",
             "value": "放置配对文件"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "放置配對檔"
+          }
         }
       }
     },
@@ -3431,6 +4637,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "覆盖 %@ 中的配对文件？"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "要取代 %@ 中的配對檔嗎？"
           }
         }
       }
@@ -3449,6 +4661,12 @@
             "state": "translated",
             "value": "写入 Documents/%@，替换任何现有的配对文件。"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "會寫入 Documents/%@，並取代現有的配對檔。"
+          }
         }
       }
     },
@@ -3465,6 +4683,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "进程查看器"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "程序檢閱器"
           }
         }
       }
@@ -3483,6 +4707,12 @@
             "state": "translated",
             "value": "概览"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "概覽"
+          }
         }
       }
     },
@@ -3499,6 +4729,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "总进程数"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "程序總數"
           }
         }
       }
@@ -3517,6 +4753,12 @@
             "state": "translated",
             "value": "进程"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "程序"
+          }
         }
       }
     },
@@ -3534,6 +4776,12 @@
             "state": "translated",
             "value": "未找到匹配的进程。"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "沒有符合的程序。"
+          }
         }
       }
     },
@@ -3547,6 +4795,12 @@
           }
         },
         "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PID %lld"
+          }
+        },
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
             "value": "PID %lld"
@@ -3568,6 +4822,12 @@
             "state": "translated",
             "value": "确认"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "確認"
+          }
         }
       }
     },
@@ -3584,6 +4844,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "正在加载..."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "載入中..."
           }
         }
       }
@@ -3602,6 +4868,12 @@
             "state": "translated",
             "value": "未找到配置文件。"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "找不到描述檔。"
+          }
         }
       }
     },
@@ -3618,6 +4890,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "过期时间: %@"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "到期時間：%@"
           }
         }
       }
@@ -3636,6 +4914,12 @@
             "state": "translated",
             "value": "无匹配配置。"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "沒有符合的描述檔"
+          }
         }
       }
     },
@@ -3652,6 +4936,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "隐藏较旧的配置"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "隱藏較舊的描述檔"
           }
         }
       }
@@ -3670,6 +4960,12 @@
             "state": "translated",
             "value": "显示 %lld 个较旧的配置"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "顯示 %lld 個較舊的描述檔"
+          }
         }
       }
     },
@@ -3686,6 +4982,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "其他配置"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "其他描述檔"
           }
         }
       }
@@ -3704,6 +5006,12 @@
             "state": "translated",
             "value": "应用过期时间"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "App 到期時間"
+          }
         }
       }
     },
@@ -3720,6 +5028,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "添加"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加入"
           }
         }
       }
@@ -3738,6 +5052,12 @@
             "state": "translated",
             "value": "确认删除"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "確認移除"
+          }
         }
       }
     },
@@ -3754,6 +5074,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "删除"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "移除"
           }
         }
       }
@@ -3772,6 +5098,12 @@
             "state": "translated",
             "value": "是否删除 %@ 的配置（UUID: %@）？\n与此配置关联的应用程序可能无法使用。"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "要移除 %@ 的描述檔（UUID：%@）嗎？\n與此描述檔相關的 App 可能會無法使用。"
+          }
         }
       }
     },
@@ -3788,6 +5120,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "最近的配置"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最新的描述檔"
           }
         }
       }
@@ -3806,6 +5144,12 @@
             "state": "translated",
             "value": "配置"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "描述檔"
+          }
         }
       }
     },
@@ -3822,6 +5166,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "UUID: %@"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "UUID：%@"
           }
         }
       }
@@ -3840,6 +5190,12 @@
             "state": "translated",
             "value": "缺少权限："
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "缺少的權限："
+          }
         }
       }
     },
@@ -3853,6 +5209,12 @@
           }
         },
         "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "StikDebug"
+          }
+        },
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
             "value": "StikDebug"
@@ -3874,6 +5236,12 @@
             "state": "translated",
             "value": "在 GitHub 上点星标"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在 GitHub 上給星星"
+          }
         }
       }
     },
@@ -3890,6 +5258,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "配对文件"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "配對檔"
           }
         }
       }
@@ -3908,6 +5282,12 @@
             "state": "translated",
             "value": "配对设备"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "配對裝置"
+          }
         }
       }
     },
@@ -3924,6 +5304,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "正在导入配对文件…"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在匯入配對檔…"
           }
         }
       }
@@ -3942,6 +5328,12 @@
             "state": "translated",
             "value": "无声音频"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無聲音訊"
+          }
         }
       }
     },
@@ -3958,6 +5350,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "播放无声音频以使 iOS 保持应用运行。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "播放聽不見的音訊，讓 iOS 保持 App 執行。"
           }
         }
       }
@@ -3976,6 +5374,12 @@
             "state": "translated",
             "value": "后台定位"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "背景定位"
+          }
         }
       }
     },
@@ -3992,6 +5396,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "使用低精度位置信息以在活动需要时保持应用运行。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在活動需要時使用低精確度定位來保持運作。"
           }
         }
       }
@@ -4010,6 +5420,12 @@
             "state": "translated",
             "value": "后台保持活跃"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "背景保持運作"
+          }
         }
       }
     },
@@ -4026,6 +5442,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "行为"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "行為"
           }
         }
       }
@@ -4044,6 +5466,12 @@
             "state": "translated",
             "value": "确认 JIT 链接"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "確認 JIT 連結"
+          }
         }
       }
     },
@@ -4060,6 +5488,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "在外部链接启用 JIT 或运行脚本前询问。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "外部連結啟用 JIT 或執行腳本前先詢問。"
           }
         }
       }
@@ -4078,6 +5512,12 @@
             "state": "translated",
             "value": "始终运行脚本"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一律執行腳本"
+          }
         }
       }
     },
@@ -4094,6 +5534,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "将设备视为 TXM 兼容以绕过硬件检查。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "將裝置視為支援 TXM，以略過硬體檢查。"
           }
         }
       }
@@ -4112,6 +5558,12 @@
             "state": "translated",
             "value": "调试"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "除錯"
+          }
         }
       }
     },
@@ -4128,6 +5580,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Malloc 调试"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Malloc 除錯"
           }
         }
       }
@@ -4146,6 +5604,12 @@
             "state": "translated",
             "value": "将进程附加至 MallocGuardEdges 和 MallocScribble 以检测内存损坏。"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "附加程序時啟用 MallocGuardEdges 和 MallocScribble，以偵測記憶體損毀。"
+          }
         }
       }
     },
@@ -4162,6 +5626,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "高级"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "進階"
           }
         }
       }
@@ -4180,6 +5650,12 @@
             "state": "translated",
             "value": "目标设备 IP"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目標裝置 IP"
+          }
         }
       }
     },
@@ -4196,6 +5672,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "目标配对端口"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "遠端配對連接埠"
           }
         }
       }
@@ -4214,6 +5696,12 @@
             "state": "translated",
             "value": "应用文件夹"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "App 檔案夾"
+          }
         }
       }
     },
@@ -4230,6 +5718,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "重新下载 DDI"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新下載 DDI"
           }
         }
       }
@@ -4248,6 +5742,12 @@
             "state": "translated",
             "value": "帮助"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "輔助說明"
+          }
         }
       }
     },
@@ -4264,6 +5764,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "配对文件指南"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "配對檔指南"
           }
         }
       }
@@ -4282,6 +5788,12 @@
             "state": "translated",
             "value": "Discord 支持"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Discord 支援"
+          }
         }
       }
     },
@@ -4298,6 +5810,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "设置"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "設定"
           }
         }
       }
@@ -4316,6 +5834,12 @@
             "state": "translated",
             "value": "重新下载 DDI 文件？"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新下載 DDI 檔案？"
+          }
         }
       }
     },
@@ -4332,6 +5856,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "重新下载"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新下載"
           }
         }
       }
@@ -4350,6 +5880,12 @@
             "state": "translated",
             "value": "现有的 DDI 文件将在下载新副本前被删除。"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下載新檔案前會先移除現有的 DDI 檔案。"
+          }
         }
       }
     },
@@ -4363,6 +5899,12 @@
           }
         },
         "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "工具"
+          }
+        },
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
             "value": "工具"
@@ -4384,6 +5926,12 @@
             "state": "translated",
             "value": "为已安装的应用启用 JIT"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "為已安裝的 App 啟用 JIT"
+          }
         }
       }
     },
@@ -4400,6 +5948,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "管理和运行 JS 脚本"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "管理和執行 JS 腳本"
           }
         }
       }
@@ -4418,6 +5972,12 @@
             "state": "translated",
             "value": "访问其他工具"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用其他工具"
+          }
         }
       }
     },
@@ -4434,6 +5994,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "实时设备日志"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "即時裝置記錄"
           }
         }
       }
@@ -4452,6 +6018,12 @@
             "state": "translated",
             "value": "查看详细的设备元数据"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "檢視詳細的裝置資料"
+          }
         }
       }
     },
@@ -4468,6 +6040,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "查看应用过期时间"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看 App 到期日"
           }
         }
       }
@@ -4486,6 +6064,12 @@
             "state": "translated",
             "value": "在不启用 JIT 的情况下启动已安装的应用"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "啟動已安裝的 App 而不啟用 JIT"
+          }
         }
       }
     },
@@ -4502,6 +6086,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "查看正在运行的应用"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "檢視執行中的 App"
           }
         }
       }
@@ -4520,6 +6110,12 @@
             "state": "translated",
             "value": "模拟 GPS 位置"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模擬 GPS 定位"
+          }
         }
       }
     },
@@ -4536,6 +6132,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "配置 StikDebug"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "設定 StikDebug"
           }
         }
       }
@@ -4554,6 +6156,12 @@
             "state": "translated",
             "value": "位置模拟"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "定位模擬"
+          }
         }
       }
     },
@@ -4570,6 +6178,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "发生错误"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "發生錯誤"
           }
         }
       }
@@ -4588,6 +6202,12 @@
             "state": "translated",
             "value": "DDI 文件已成功刷新。"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DDI 檔案已成功更新。"
+          }
         }
       }
     },
@@ -4604,6 +6224,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "重新下载 DDI 文件失败：%@"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新下載 DDI 檔案失敗：%@"
           }
         }
       }
@@ -4622,6 +6248,12 @@
             "state": "translated",
             "value": "正在准备下载…"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在準備下載…"
+          }
         }
       }
     },
@@ -4638,6 +6270,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "正在删除现有的 DDI 文件..."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在移除現有的 DDI 檔案..."
           }
         }
       }
@@ -4656,6 +6294,12 @@
             "state": "translated",
             "value": "正在开始下载..."
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在開始下載..."
+          }
         }
       }
     },
@@ -4672,6 +6316,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "正在下载 %@..."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在下載 %@..."
           }
         }
       }
@@ -4690,6 +6340,12 @@
             "state": "translated",
             "value": "%@ 已准备就绪"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 已就緒"
+          }
         }
       }
     },
@@ -4706,6 +6362,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "DDI 下载完成。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DDI 下載完成。"
           }
         }
       }
@@ -4724,6 +6386,12 @@
             "state": "translated",
             "value": "正在连接…"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "連線中…"
+          }
         }
       }
     },
@@ -4740,6 +6408,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "设备未连接"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "裝置未連接"
           }
         }
       }
@@ -4758,6 +6432,12 @@
             "state": "translated",
             "value": "连接错误"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "連線錯誤"
+          }
         }
       }
     },
@@ -4774,6 +6454,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "应用列表不可用"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無法取得 App 清單"
           }
         }
       }
@@ -4792,6 +6478,12 @@
             "state": "translated",
             "value": "设备已连接"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "裝置已連接"
+          }
         }
       }
     },
@@ -4808,6 +6500,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "导入成功"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "匯入成功"
           }
         }
       }
@@ -4826,6 +6524,12 @@
             "state": "translated",
             "value": "导入失败：%@"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "匯入失敗：%@"
+          }
         }
       }
     },
@@ -4842,6 +6546,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "配对文件不可用"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無法取得配對檔"
           }
         }
       }
@@ -4860,6 +6570,12 @@
             "state": "translated",
             "value": "无效的目标地址"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目標位址無效"
+          }
         }
       }
     },
@@ -4876,6 +6592,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "配对文件无效"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "配對檔遭拒"
           }
         }
       }
@@ -4894,6 +6616,12 @@
             "state": "translated",
             "value": "设备已锁定"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "裝置已鎖定"
+          }
         }
       }
     },
@@ -4910,6 +6638,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "开发者模式未开启"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "開發者模式未開啟"
           }
         }
       }
@@ -4928,6 +6662,12 @@
             "state": "translated",
             "value": "开发者服务不可用"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "開發者服務無法使用"
+          }
         }
       }
     },
@@ -4944,6 +6684,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "启用飞行模式"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "開啟飛航模式"
           }
         }
       }
@@ -4962,6 +6708,12 @@
             "state": "translated",
             "value": "关闭飞行模式"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "關閉飛航模式"
+          }
         }
       }
     },
@@ -4978,6 +6730,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "连接 LocalDevVPN"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "連接 LocalDevVPN"
           }
         }
       }
@@ -4996,6 +6754,12 @@
             "state": "translated",
             "value": "本地 VPN 无响应"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LocalDevVPN 無法使用"
+          }
         }
       }
     },
@@ -5012,6 +6776,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "设备无法访问"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無法連上裝置"
           }
         }
       }
@@ -5030,6 +6800,12 @@
             "state": "translated",
             "value": "无法连接到设备"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無法連接裝置"
+          }
         }
       }
     },
@@ -5046,6 +6822,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "请使用“设置 → 配对设备”或 iloader 生成并放置新的配对文件。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "請使用「設定」→「配對裝置」或 iloader 產生並放置新的配對檔。"
           }
         }
       }
@@ -5064,6 +6846,12 @@
             "state": "translated",
             "value": "请使用 iloader 生成并放置新的配对文件。"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "請使用 iloader 產生並放置新的配對檔。"
+          }
         }
       }
     },
@@ -5080,6 +6868,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "在设置中检查目标设备 IP。请输入一个 IPv4 地址，例如 10.7.0.1。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "請檢查「設定」中的目標裝置 IP。請輸入 IPv4 位址，例如 10.7.0.1。"
           }
         }
       }
@@ -5098,6 +6892,12 @@
             "state": "translated",
             "value": "请解锁目标设备后重试。"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "請解鎖目標裝置後再試一次。"
+          }
         }
       }
     },
@@ -5114,6 +6914,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "请在目标设备的“设置 → 隐私与安全”中启用开发者模式，然后按照重启时的说明确认。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "請在目標裝置的「設定」→「隱私權與安全性」中啟用開發者模式，然後依照指示重新啟動。"
           }
         }
       }
@@ -5132,6 +6938,12 @@
             "state": "translated",
             "value": "请检查开发者模式是否已启用。尝试重新连接；如果服务仍不可用，请在设置中重新下载开发者映像。"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "請確認開發者模式已啟用。試著重新連線；如果服務仍無法使用，請在「設定」中重新下載開發者磁碟映像檔。"
+          }
         }
       }
     },
@@ -5148,6 +6960,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "保持 LocalDevVPN 连接。启用飞行模式（或仅禁用蜂窝数据），然后重试。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "請保持 LocalDevVPN 連線。從螢幕右上角往下滑並點一下飛機圖示來開啟飛航模式，然後回到這裡。"
           }
         }
       }
@@ -5166,6 +6984,12 @@
             "state": "translated",
             "value": "启用 Wi-Fi 或蜂窝数据，然后连接 LocalDevVPN。"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "從螢幕右上角往下滑並點一下飛機圖示來關閉飛航模式，然後回到這裡。"
+          }
         }
       }
     },
@@ -5182,6 +7006,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "连接 LocalDevVPN，然后返回 StikDebug 并重试。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "請連接 LocalDevVPN，然後回到 StikDebug 再試一次。"
           }
         }
       }
@@ -5200,6 +7030,12 @@
             "state": "translated",
             "value": "重新连接 LocalDevVPN，然后返回 StikDebug 并重试。"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "請連接 VPN，然後回到這裡。"
+          }
         }
       }
     },
@@ -5216,6 +7052,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "设备的配对服务无法访问。请检查设置中的远程配对端口。如果仍然失败，请重启设备并重新连接 LocalDevVPN。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無法連上裝置的配對服務。請檢查「設定」中的遠端配對連接埠。如果仍然失敗，請重新啟動裝置並重新連接 LocalDevVPN。"
           }
         }
       }
@@ -5234,6 +7076,12 @@
             "state": "translated",
             "value": "请检查设置中的目标设备 IP 和远程配对端口，并确保目标设备在您的网络上可访问。"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "請檢查「設定」中的目標裝置 IP 和遠端配對連接埠，並確認目標裝置在你的網路上可以連上。"
+          }
         }
       }
     },
@@ -5250,6 +7098,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "请解锁目标设备后重试。如果错误仍然存在，请重启目标设备。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "請解鎖目標裝置後再試一次。如果錯誤持續發生，請重新啟動目標裝置。"
           }
         }
       }
@@ -5268,6 +7122,12 @@
             "state": "translated",
             "value": "已在没有 Wi-Fi 或蜂窝数据的情况下连接。您现在可以启用蜂窝数据，隧道将保持连接。"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已在飛航模式下連線。你現在可以關閉飛航模式，StikDebug 會保持連線。"
+          }
         }
       }
     },
@@ -5284,6 +7144,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "启用 JIT？"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "啟用 JIT？"
           }
         }
       }
@@ -5302,6 +7168,12 @@
             "state": "translated",
             "value": "终止进程？"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "終止程序？"
+          }
         }
       }
     },
@@ -5318,6 +7190,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "启动应用？"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "啟動 App？"
           }
         }
       }
@@ -5336,6 +7214,12 @@
             "state": "translated",
             "value": "一个外部链接想要启用 JIT %@ 给 %@。"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "有外部連結想啟用 JIT%@，對象是 %@。"
+          }
         }
       }
     },
@@ -5352,6 +7236,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "一个外部链接想要终止进程 %@。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "有外部連結想終止程序 %@。"
           }
         }
       }
@@ -5370,6 +7260,12 @@
             "state": "translated",
             "value": "一个外部链接想要启动 %@。"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "有外部連結想啟動 App %@。"
+          }
         }
       }
     },
@@ -5386,6 +7282,12 @@
           "stringUnit": {
             "state": "translated",
             "value": " 并运行脚本"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": " 並執行腳本"
           }
         }
       }
@@ -5404,6 +7306,12 @@
             "state": "translated",
             "value": "启用并运行脚本"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "啟用並執行腳本"
+          }
         }
       }
     },
@@ -5420,6 +7328,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "请求的应用"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "要求的 App"
           }
         }
       }
@@ -5438,213 +7352,1164 @@
             "state": "translated",
             "value": "进程 %@"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "程序 %@"
+          }
         }
       }
     },
     "Invalid Pairing File": {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Invalid Pairing File"
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invalid Pairing File"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "无效配对文件"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无效配对文件"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "配對檔無效"
           }
         }
       }
     },
     "DDI Mount Failed": {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "DDI Mount Failed"
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DDI Mount Failed"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "DDI 挂载失败"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DDI 挂载失败"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DDI 掛載失敗"
           }
         }
       }
     },
     "Location Access Refused": {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Location Access Refused"
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Location Access Refused"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "位置访问被拒绝"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "位置访问被拒绝"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "定位存取遭拒"
           }
         }
       }
     },
     "Unable to Read Script": {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Unable to Read Script"
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unable to Read Script"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "无法读取脚本"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法读取脚本"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無法讀取腳本"
           }
         }
       }
     },
     "Failed to Kill Process": {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Failed to Kill Process"
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed to Kill Process"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "终止进程失败"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "终止进程失败"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無法終止程序"
           }
         }
       }
     },
     "Invalid Location URL": {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Invalid Location URL"
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invalid Location URL"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "无效位置 URL"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无效位置 URL"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "定位 URL 無效"
           }
         }
       }
     },
     "Invalid Coordinates": {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Invalid Coordinates"
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invalid Coordinates"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "无效坐标"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无效坐标"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "座標無效"
           }
         }
       }
     },
     "Pairing File Required": {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pairing File Required"
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pairing File Required"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "需要配对文件"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需要配对文件"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需要配對檔"
           }
         }
       }
     },
     "Location Simulation Failed": {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Location Simulation Failed"
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Location Simulation Failed"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "位置模拟失败"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "位置模拟失败"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "定位模擬失敗"
           }
         }
       }
     },
     "Clear Location Failed": {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Clear Location Failed"
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear Location Failed"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "清除位置失败"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清除位置失败"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清除定位失敗"
           }
         }
       }
     },
     "Connection Error": {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Connection Error"
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connection Error"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "连接错误"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "连接错误"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "連線錯誤"
           }
         }
       }
     },
     "Start": {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Start"
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "起点"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "起点"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "起點"
           }
         }
       }
     },
     "End": {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "End"
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "End"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "终点"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "终点"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "終點"
+          }
+        }
+      }
+    },
+    "Location Pin": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pin"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "大頭針"
+          }
+        }
+      }
+    },
+    "Current": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目前位置"
+          }
+        }
+      }
+    },
+    "Walk": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Walk"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "步行"
+          }
+        }
+      }
+    },
+    "Run": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Run"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "跑步"
+          }
+        }
+      }
+    },
+    "Bike": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bike"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "腳踏車"
+          }
+        }
+      }
+    },
+    "Car": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Car"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "汽車"
+          }
+        }
+      }
+    },
+    "Highway": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Highway"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "高速公路"
+          }
+        }
+      }
+    },
+    "One way": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "One way"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "單程"
+          }
+        }
+      }
+    },
+    "Back and forth": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back and forth"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "來回往返"
+          }
+        }
+      }
+    },
+    "Loop": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loop"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "繞圈循環"
+          }
+        }
+      }
+    },
+    "The selected file is empty.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The selected file is empty."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所選的檔案是空的。"
+          }
+        }
+      }
+    },
+    "No valid coordinates were found. Use GPX, GeoJSON, JSON, CSV, or plain text with latitude and longitude values.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No valid coordinates were found. Use GPX, GeoJSON, JSON, CSV, or plain text with latitude and longitude values."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "找不到有效的座標。請使用 GPX、GeoJSON、JSON、CSV，或含有經緯度數值的純文字。"
+          }
+        }
+      }
+    },
+    "%@ • ETA %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ • ETA %@"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ • 預計 %@"
+          }
+        }
+      }
+    },
+    "Speed: %@ km/h": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Speed: %@ km/h"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "速度：%@ km/h"
+          }
+        }
+      }
+    },
+    "Speed: road limits": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Speed: road limits"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "速度：道路速限"
+          }
+        }
+      }
+    },
+    "Resume": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resume"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "繼續"
+          }
+        }
+      }
+    },
+    "Pause": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pause"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暫停"
+          }
+        }
+      }
+    },
+    "Tap the map to add path points in order.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tap the map to add path points in order."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "依序點地圖加入路徑點。"
+          }
+        }
+      }
+    },
+    "%lld points • %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld points • %@"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 個點 • %@"
+          }
+        }
+      }
+    },
+    "Route paused.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Route paused."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "路線已暫停。"
+          }
+        }
+      }
+    },
+    "Route simulation active.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Route simulation active."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "路線模擬進行中。"
+          }
+        }
+      }
+    },
+    "Calculating route…": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Calculating route…"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在計算路線…"
+          }
+        }
+      }
+    },
+    "Prefetching road speeds…": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prefetching road speeds…"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在取得道路速限…"
+          }
+        }
+      }
+    },
+    "Route ready.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Route ready."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "路線已就緒。"
+          }
+        }
+      }
+    },
+    "Pick both route endpoints to build the drive.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pick both route endpoints to build the drive."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "請選好起點和終點來建立路線。"
+          }
+        }
+      }
+    },
+    "Plan a route from the toolbar.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plan a route from the toolbar."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "請從工具列規劃路線。"
+          }
+        }
+      }
+    },
+    "Draw Path": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Draw Path"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "畫路徑"
+          }
+        }
+      }
+    },
+    "Custom Speed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Custom Speed"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自訂速度"
+          }
+        }
+      }
+    },
+    "Enter the movement speed in km/h.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter the movement speed in km/h."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "輸入移動速度，單位為 km/h。"
+          }
+        }
+      }
+    },
+    "Route Start": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Route Start"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "路線起點"
+          }
+        }
+      }
+    },
+    "Route End": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Route End"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "路線終點"
+          }
+        }
+      }
+    },
+    "Imported": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Imported"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "匯入"
+          }
+        }
+      }
+    },
+    "Path": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Path"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "路徑"
+          }
+        }
+      }
+    },
+    "%@ Start": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ Start"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@起點"
+          }
+        }
+      }
+    },
+    "%@ End": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ End"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@終點"
+          }
+        }
+      }
+    },
+    "Import Failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import Failed"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "匯入失敗"
+          }
+        }
+      }
+    },
+    "Undo": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Undo"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "復原"
+          }
+        }
+      }
+    },
+    "Road speed limits": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Road speed limits"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "道路速限"
+          }
+        }
+      }
+    },
+    "Custom…": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Custom…"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自訂…"
+          }
+        }
+      }
+    },
+    "Simulation Failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Simulation Failed"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模擬失敗"
+          }
+        }
+      }
+    },
+    "Could not simulate location (error %@). Make sure the device is connected and the DDI is mounted.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not simulate location (error %@). Make sure the device is connected and the DDI is mounted."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無法模擬定位（錯誤 %@）。請確認裝置已連接且 DDI 已掛載。"
+          }
+        }
+      }
+    },
+    "Route Simulation Failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Route Simulation Failed"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "路線模擬失敗"
+          }
+        }
+      }
+    },
+    "Could not start route simulation (error %@). Make sure the device is connected and the DDI is mounted.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not start route simulation (error %@). Make sure the device is connected and the DDI is mounted."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無法開始路線模擬（錯誤 %@）。請確認裝置已連接且 DDI 已掛載。"
+          }
+        }
+      }
+    },
+    "Code %@: %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Code %@: %@"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "代碼 %@：%@"
+          }
+        }
+      }
+    },
+    "Clear Failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear Failed"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清除失敗"
+          }
+        }
+      }
+    },
+    "Could not clear simulated location (error %@).": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not clear simulated location (error %@)."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無法清除模擬定位（錯誤 %@）。"
+          }
+        }
+      }
+    },
+    "No drivable route was returned.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No drivable route was returned."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "找不到可行駛的路線。"
+          }
+        }
+      }
+    },
+    "Route Failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Route Failed"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "路線規劃失敗"
+          }
+        }
+      }
+    },
+    "Could not continue route simulation (error %@).": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not continue route simulation (error %@)."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無法繼續路線模擬（錯誤 %@）。"
+          }
+        }
+      }
+    },
+    "Could not continue route simulation.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not continue route simulation."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無法繼續路線模擬。"
+          }
+        }
+      }
+    },
+    "Could not resolve that location.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not resolve that location."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無法解析該地點。"
           }
         }
       }
