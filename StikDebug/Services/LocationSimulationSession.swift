@@ -9,6 +9,9 @@ final class LocationSimulationSession: ObservableObject {
     @Published private(set) var coordinate: CLLocationCoordinate2D?
     @Published private(set) var routeCoordinates: [CLLocationCoordinate2D]?
     @Published private(set) var isRoutePaused = false
+    /// While set, the running route keeps its place but the simulated location
+    /// is cleared so the device reports where it really is.
+    @Published private(set) var isRealLocationHeld = false
     private var resendTimer: Timer?
     private var routeID: UUID?
 
@@ -38,6 +41,9 @@ final class LocationSimulationSession: ObservableObject {
         if isRoutePaused {
             isRoutePaused = false
         }
+        if isRealLocationHeld {
+            isRealLocationHeld = false
+        }
         start(at: coordinate)
         return routeID
     }
@@ -52,11 +58,19 @@ final class LocationSimulationSession: ObservableObject {
         if isRoutePaused {
             isRoutePaused = false
         }
+        if isRealLocationHeld {
+            isRealLocationHeld = false
+        }
     }
 
     func setRoutePaused(_ paused: Bool) {
         guard routeID != nil, isRoutePaused != paused else { return }
         isRoutePaused = paused
+    }
+
+    func setRealLocationHeld(_ held: Bool) {
+        guard routeID != nil, isRealLocationHeld != held else { return }
+        isRealLocationHeld = held
     }
 
     func pauseResending() {
