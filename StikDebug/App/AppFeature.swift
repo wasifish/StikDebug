@@ -15,6 +15,7 @@ enum AppFeature: String, CaseIterable, Identifiable {
     case processes
     case launchApps = "launchapps"
     case location
+    case autoAds = "autoads"
     case settings
 
     var id: String {
@@ -41,6 +42,8 @@ enum AppFeature: String, CaseIterable, Identifiable {
             return "Processes"
         case .location:
             return "Location"
+        case .autoAds:
+            return "Auto Ads"
         case .settings:
             return "Settings"
         }
@@ -66,6 +69,8 @@ enum AppFeature: String, CaseIterable, Identifiable {
             return "Inspect running apps"
         case .location:
             return "Simulate GPS location"
+        case .autoAds:
+            return "Watch reward ads automatically"
         case .settings:
             return "Configure StikDebug"
         }
@@ -100,6 +105,8 @@ enum AppFeature: String, CaseIterable, Identifiable {
             return "rectangle.stack.person.crop"
         case .location:
             return "location"
+        case .autoAds:
+            return "play.rectangle"
         case .settings:
             return "gearshape.fill"
         }
@@ -126,6 +133,8 @@ enum AppFeature: String, CaseIterable, Identifiable {
             ProcessInspectorView()
         case .location:
             LocationSimulationView()
+        case .autoAds:
+            AdAutomationView()
         case .settings:
             SettingsView()
         }
@@ -134,5 +143,5 @@ enum AppFeature: String, CaseIterable, Identifiable {
 
 extension AppFeature {
     static let mainTabs: [AppFeature] = [.home, .tools, .settings]
-    static let toolList: [AppFeature] = [.launchApps, .scripts, .console, .deviceInfo, .profiles, .processes, .location]
+    static let toolList: [AppFeature] = [.launchApps, .scripts, .console, .deviceInfo, .profiles, .processes, .location, .autoAds]
 }
