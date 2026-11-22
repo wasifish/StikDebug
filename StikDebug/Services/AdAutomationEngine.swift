@@ -122,6 +122,12 @@ final class AdAutomationEngine: ObservableObject {
     private var stopNote: String?
     private var lastNotes: [String: String] = [:]
     private var geometry = AdScreenGeometry()
+    /// The run as text for the clipboard: every main line, and what was on
+    /// screen only for the ticks that led to an action.
+    private var transcript: [String] = []
+    private var pendingDetails: [String] = []
+    private var previousTranscript: [String] = []
+    private var runStartedAt = Date()
 
     private let client = AdRunnerClient.shared
     private static let tickInterval: TimeInterval = 2
@@ -147,6 +153,16 @@ final class AdAutomationEngine: ObservableObject {
     /// Small marks that open information or report pages, never a close button.
     private static let infoGlyphs: Set<String> = ["!", "！", "i", "ⓘ", "ℹ", "?", "？", "ad", "ads", "廣告", "广告"]
     private static let countdownWords = ["秒", "sec", "剩", "remaining", "reward in"]
+    /// A clock such as "18小時56分58秒" belongs to the game, not to an ad.
+    private static let clockMarks = ["時", "时", "分", "天", "hour", "min", "day", ":", "："]
+    /// Titles of the window a game shows when it hands out the reward.
+    private static let rewardTitles = [
+        "恭喜獲得", "恭喜获得", "獲得獎勵", "获得奖励", "恭喜", "congratulations", "you got", "reward received",
+    ]
+    /// Buttons that collect a reward. These must match the whole label.
+    private static let claimLabels: Set<String> = ["領取", "领取", "領取獎勵", "领取奖励", "收下", "claim", "collect"]
+    /// Buttons that only count next to a reward title.
+    private static let acknowledgeLabels: Set<String> = ["確定", "确定", "確認", "确认", "ok", "好", "好的", "知道了"]
 
     private init() {}
 
@@ -194,11 +210,18 @@ final class AdAutomationEngine: ObservableObject {
         isRunning = true
         adsFinished = 0
         recentLog = []
-        exportURL = nil
+        runStartedAt = Date()
         screenshotCount = 0
         stopNote = nil
         lastNotes = [:]
         geometry = AdScreenGeometry()
+        // A real run is kept when a short one follows, so stopping and
+        // starting again does not throw away the log worth reading.
+        if transcript.count + pendingDetails.count > 12 {
+            previousTranscript = Array((transcript + pendingDetails).suffix(700))
+        }
+        transcript = []
+        pendingDetails = []
         openSession()
         BackgroundAudioManager.shared.requestStart()
         BackgroundLocationManager.shared.requestStart()
@@ -221,7 +244,8 @@ final class AdAutomationEngine: ObservableObject {
         log("stopped; ads finished: \(adsFinished)")
         try? logHandle?.close()
         logHandle = nil
-        if let folder = sessionFolder {
+        if let folder = sessionFolder,
+           exportURL == nil || Date().timeIntervalSince(runStartedAt) >= 20 {
             exportURL = Self.makeArchive(of: folder)
         }
         let summary = String(format: "Stopped. Ads finished: %lld".localized, adsFinished)
@@ -369,7 +393,13 @@ final class AdAutomationEngine: ObservableObject {
                     let height = geometry.height
                     let items = texts.map { geometry.toContent($0) } + elements
                     let startItem = Self.firstMatch(in: items, keywords: config.startKeywords)
-                    let confirmItem = Self.firstMatch(in: items, keywords: config.confirmKeywords)
+                    let loweredStart = config.startKeywords.map { $0.lowercased() }
+                    let confirmItem = Self.firstMatch(
+                        in: items.filter { item in
+                            !loweredStart.contains(where: { item.label.lowercased().contains($0) })
+                        },
+                        keywords: config.confirmKeywords
+                    )
 
                     // Countdown bookkeeping for the ad on screen. The game's own
                     // page (start button showing) has timers too; those do not count.
@@ -405,6 +435,7 @@ final class AdAutomationEngine: ObservableObject {
                     let sample = items.prefix(12).map { $0.label }.filter { !$0.isEmpty }.joined(separator: " / ")
                     note("tick phase=\(inAd ? "ad" : "idle") items=\(items.count): \(String(sample.prefix(140)))",
                          kind: "tick")
+                    pendingDetails = []
                     for item in items.prefix(70) {
                         log("  " + item.summary)
                     }
@@ -435,6 +466,9 @@ final class AdAutomationEngine: ObservableObject {
                         } else if let confirmItem {
                             log("action: tap confirm \(confirmItem.summary)")
                             await tap(x: confirmItem.centerX, y: confirmItem.centerY)
+                        } else if let claim = Self.claimButton(in: items, allowUntitled: false) {
+                            log("action: tap claim \(claim.summary)")
+                            await tap(x: claim.centerX, y: claim.centerY)
                         } else {
                             status = config.startKeywords.isEmpty
                                 ? "Enter the text of the button that starts an ad.".localized
@@ -500,6 +534,10 @@ final class AdAutomationEngine: ObservableObject {
                     } else if let confirmItem {
                         log("action: tap confirm \(confirmItem.summary)")
                         await tap(x: confirmItem.centerX, y: confirmItem.centerY)
+                    } else if let claim = Self.claimButton(in: items, allowUntitled: !countdownLive) {
+                        // The ad is over and the game is handing out the reward.
+                        log("action: tap claim \(claim.summary)")
+                        await tap(x: claim.centerX, y: claim.centerY)
                     } else if countdownLive {
                         // Closing while the countdown runs gives up the reward.
                         note("waiting: countdown '\(lastCountdownLabel)' is showing", kind: "wait")
@@ -755,6 +793,17 @@ final class AdAutomationEngine: ObservableObject {
         return title
     }
 
+    /// The button that collects the reward. Without a reward title on screen
+    /// only an unmistakable label counts, and only when the caller allows it.
+    private static func claimButton(in items: [AdScreenItem], allowUntitled: Bool) -> AdScreenItem? {
+        let titled = firstMatch(in: items, keywords: rewardTitles) != nil
+        guard titled || allowUntitled else { return nil }
+        return items.first { item in
+            let label = item.label.trimmingCharacters(in: .whitespaces).lowercased()
+            return claimLabels.contains(label) || (titled && acknowledgeLabels.contains(label))
+        }
+    }
+
     /// A countdown near a top corner: a bare number such as "5", or a short
     /// text such as "5 秒後可關閉".
     private static func countdown(in items: [AdScreenItem], width: Double, height: Double) -> AdScreenItem? {
@@ -765,7 +814,10 @@ final class AdAutomationEngine: ObservableObject {
                 return false
             }
             let label = item.label.trimmingCharacters(in: .whitespaces).lowercased()
-            guard !label.isEmpty, label.count <= 20, label.contains(where: { $0.isNumber }) else { return false }
+            guard !label.isEmpty, label.count <= 14, label.contains(where: { $0.isNumber }) else { return false }
+            if clockMarks.contains(where: { label.contains($0) }) {
+                return false
+            }
             if countdownWords.contains(where: { label.contains($0) }) {
                 return true
             }
@@ -905,6 +957,19 @@ final class AdAutomationEngine: ObservableObject {
         }
     }
 
+    /// The run so far as plain text, short enough to paste into a message.
+    func transcriptText() -> String {
+        var lines: [String] = []
+        if !previousTranscript.isEmpty {
+            lines.append("=== previous run ===")
+            lines += previousTranscript
+            lines.append("=== latest run ===")
+        }
+        lines += transcript
+        lines += pendingDetails
+        return lines.joined(separator: "\n")
+    }
+
     /// Logs a line unless it repeats the previous note, so a state that lasts
     /// many ticks shows once.
     private func note(_ message: String, kind: String = "state") {
@@ -920,6 +985,18 @@ final class AdAutomationEngine: ObservableObject {
         let line = "\(formatter.string(from: Date())) \(message)"
         if let data = (line + "\n").data(using: .utf8) {
             try? logHandle?.write(contentsOf: data)
+        }
+        if message.hasPrefix("  ") && !message.hasPrefix("  tap ") {
+            pendingDetails.append(line)
+        } else {
+            if message.hasPrefix("action:") || message.hasPrefix("waiting:") || message.hasPrefix("control at") {
+                transcript.append(contentsOf: pendingDetails)
+                pendingDetails = []
+            }
+            transcript.append(line)
+            if transcript.count > 1500 {
+                transcript.removeFirst(300)
+            }
         }
         if !message.hasPrefix("  ") {
             recentLog.append(line)
