@@ -15,6 +15,7 @@ struct AdAutomationView: View {
     @AppStorage("adProbeCorners") private var probeCorners = true
     @AppStorage("adMaxSeconds") private var maxAdSeconds = 45
     @AppStorage("adRunMinutes") private var runMinutes = 30
+    @AppStorage("adSubmitReportSheet") private var submitReportSheet = false
 
     @State private var copied = false
 
@@ -92,8 +93,11 @@ struct AdAutomationView: View {
                 Stepper(value: $runMinutes, in: 5...180, step: 5) {
                     Text(String(format: "Stop after %lld minutes".localized, runMinutes))
                 }
+                Toggle("Press Submit when a report window will not close", isOn: $submitReportSheet)
             } header: {
                 Text("Options")
+            } footer: {
+                Text("Submit sends a report about the ad to the ad network. It is pressed at most 5 times per run.")
             }
             .disabled(engine.isRunning)
 
@@ -111,7 +115,8 @@ struct AdAutomationView: View {
                             observeOnly: observeOnly,
                             probeCorners: probeCorners,
                             maxAdSeconds: maxAdSeconds,
-                            runMinutes: runMinutes
+                            runMinutes: runMinutes,
+                            submitReportSheet: submitReportSheet
                         ))
                     }
                     .disabled(!canStart)
