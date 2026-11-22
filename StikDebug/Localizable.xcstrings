@@ -9465,6 +9465,23 @@
           }
         }
       }
+    },
+    "A report window is open. Close it by hand.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A report window is open. Close it by hand."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "檢舉視窗打開了，請手動關掉。"
+          }
+        }
+      }
     }
   },
   "version": "1.3"
