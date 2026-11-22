@@ -8,6 +8,7 @@ import SwiftUI
 struct AdAutomationView: View {
     @ObservedObject private var engine = AdAutomationEngine.shared
 
+    @AppStorage("adGameName") private var gameName = ""
     @AppStorage("adStartKeywords") private var startKeywords = ""
     @AppStorage("adConfirmKeywords") private var confirmKeywords = ""
     @AppStorage("adObserveOnly") private var observeOnly = false
@@ -56,6 +57,17 @@ struct AdAutomationView: View {
             }
 
             Section {
+                TextField("Game name, as shown in the App Store", text: $gameName)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+            } header: {
+                Text("Game")
+            } footer: {
+                Text("Start opens this game for you. Leave it empty to switch to the game yourself.")
+            }
+            .disabled(engine.isRunning)
+
+            Section {
                 TextField("Text on the button that starts an ad", text: $startKeywords)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
@@ -91,6 +103,7 @@ struct AdAutomationView: View {
                 } else {
                     Button("Start Watching") {
                         engine.start(AdAutomationConfig(
+                            gameName: gameName.trimmingCharacters(in: .whitespaces),
                             startKeywords: AdAutomationConfig.keywords(from: startKeywords),
                             confirmKeywords: AdAutomationConfig.keywords(from: confirmKeywords),
                             observeOnly: observeOnly,
@@ -107,7 +120,7 @@ struct AdAutomationView: View {
                         .foregroundStyle(.secondary)
                 }
             } footer: {
-                Text("After tapping Start, switch to the game. Come back here to stop.")
+                Text("Leave the game on the page with the ad button. Come back here to stop.")
             }
 
             if let exportURL = engine.exportURL {
