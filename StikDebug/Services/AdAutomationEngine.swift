@@ -369,6 +369,12 @@ final class AdAutomationEngine: ObservableObject {
         var lastIconScan = Date.distantPast
         var crossTaps: [CGPoint] = []
         var probeTaps: [CGPoint] = []
+        // A blind tap that brought up the store page says nothing about a
+        // cross that shows up in the same place later, so the two are kept apart.
+        var crossStoreSpots: [CGPoint] = []
+        var lastProbeWasCross = false
+        // How long the ad says it lasts, when it says so.
+        var statedLength = 0.0
         // Outside an ad the elements are only read now and then, to notice
         // an ad that is on screen although this run did not start it.
         var lastIdleLook = Date.distantPast
@@ -563,6 +569,21 @@ final class AdAutomationEngine: ObservableObject {
                                 countdownGoneSince = Date()
                             }
                         }
+                        // Some players state the ad's length ("59秒") without
+                        // a number that text recognition can follow. Until that
+                        // time is up there is no close button, and a tap on the
+                        // ad only brings up the store page.
+                        for element in elements {
+                            let label = element.label.trimmingCharacters(in: .whitespaces)
+                            if label.hasSuffix("秒"), let seconds = Double(label.dropLast()),
+                               seconds >= 5, seconds <= 180, seconds > statedLength {
+                                statedLength = seconds
+                                log("the ad says it lasts \(Int(seconds)) seconds")
+                            }
+                        }
+                        if statedLength > 0, adElapsed < statedLength + 3 {
+                            countdownLive = true
+                        }
                         if countdownLive || adElapsed < Self.minimumAdSeconds {
                             for control in Self.cornerControls(in: items, width: width, height: height) {
                                 let spot = CGPoint(x: control.centerX, y: control.centerY)
@@ -632,6 +653,7 @@ final class AdAutomationEngine: ObservableObject {
                         }
                     }
                     let leftIsSuspect = cautiousLeft || earlySpots.contains(where: { $0.x < width / 2 })
+                        || network == .pangle || network == .mintegral || network == .liftoff
                     let probePoints = Self.probePoints(width: width, height: height, leftControls: leftControls,
                                                        earlySpots: earlySpots, badSpots: badSpots,
                                                        network: network, countdownSpot: countdownSpot,
@@ -649,7 +671,7 @@ final class AdAutomationEngine: ObservableObject {
                         if Self.isNear(spot, any: badSpots) || Self.isNear(spot, any: leftControls) {
                             continue
                         }
-                        if Self.count(of: spot, in: storeSpots) >= 1 || Self.count(of: spot, in: crossTaps) >= 3 {
+                        if Self.count(of: spot, in: crossStoreSpots) >= 1 || Self.count(of: spot, in: crossTaps) >= 3 {
                             continue
                         }
                         usableCross = spot
@@ -667,7 +689,11 @@ final class AdAutomationEngine: ObservableObject {
                     let adLikely = adOnScreen || storePageShowing || !onlyGameView
                     if storePageShowing, let probe = lastProbe, Date().timeIntervalSince(lastProbeAt) < 10 {
                         // That spot is part of the ad, not its close button.
-                        storeSpots.append(probe)
+                        if lastProbeWasCross {
+                            crossStoreSpots.append(probe)
+                        } else {
+                            storeSpots.append(probe)
+                        }
                         lastProbe = nil
                         log("\(Int(probe.x)),\(Int(probe.y)) opened the store page instead of closing the ad")
                     }
@@ -732,6 +758,9 @@ final class AdAutomationEngine: ObservableObject {
                             lastIconScan = Date.distantPast
                             crossTaps = []
                             probeTaps = []
+                            crossStoreSpots = []
+                            lastProbeWasCross = false
+                            statedLength = 0
                             status = "Ad started. Waiting for the close button…".localized
                         } else if startItem == nil, adOnScreen || storePageShowing {
                             note("an ad is on screen and could not be closed", kind: "wait")
@@ -770,6 +799,9 @@ final class AdAutomationEngine: ObservableObject {
                             lastIconScan = Date.distantPast
                             crossTaps = []
                             probeTaps = []
+                            crossStoreSpots = []
+                            lastProbeWasCross = false
+                            statedLength = 0
                             status = "Ad started. Waiting for the close button…".localized
                         } else if let confirmItem {
                             log("action: tap confirm \(confirmItem.summary)")
@@ -893,7 +925,7 @@ final class AdAutomationEngine: ObservableObject {
                             // close button comes after it.
                             storeClosedAt = Date()
                         }
-                    } else if config.probeCorners, adElapsed >= 10, !storePageShowing, storeSpots.count < 5,
+                    } else if config.probeCorners, adElapsed >= 10, !storePageShowing,
                               Date().timeIntervalSince(lastProbeAt) >= 3, let cross = usableCross {
                         await saveScreenshot(tag: "cross")
                         log("action: tap the cross seen in the picture at \(Int(cross.x)),\(Int(cross.y))")
@@ -901,6 +933,7 @@ final class AdAutomationEngine: ObservableObject {
                         crossTaps.append(cross)
                         lastCloseTap = cross
                         lastProbe = cross
+                        lastProbeWasCross = true
                         lastProbeAt = Date()
                         closeTaps += 1
                     } else if adElapsed >= Self.minimumAdSeconds, adLikely, openStoreTaps < 3,
@@ -926,6 +959,7 @@ final class AdAutomationEngine: ObservableObject {
                         await tap(x: point.x, y: point.y)
                         lastCloseTap = point
                         lastProbe = point
+                        lastProbeWasCross = false
                         lastProbeAt = Date()
                         probeTaps.append(point)
                         closeTaps += 1
@@ -1342,6 +1376,10 @@ final class AdAutomationEngine: ObservableObject {
             // first and close the ad on the next tap, hence two tries.
             add(CGPoint(x: 27, y: 82), storeLimit: 2)
             add(CGPoint(x: width - 27, y: 82))
+        }
+        if network == .pangle, width > height {
+            // Its close button takes the place of the timer at the top right.
+            add(CGPoint(x: width - 30, y: 38))
         }
         let leftKnown = leftControls + (earlySpots + badSpots).filter { $0.x < width * 0.3 }
         for spot in leftKnown {
