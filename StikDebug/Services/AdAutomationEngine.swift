@@ -140,6 +140,8 @@ final class AdAutomationEngine: ObservableObject {
         "continue watching", "continue", "keep playing", "繼續觀看影片", "繼續",
     ]
     private static let closeGlyphs: Set<String> = ["x", "×", "✕", "✖", "╳", "ⓧ", "⊗", "⨯", "✗", "✘"]
+    /// A "next" arrow. At the top right of an ad it skips or closes it.
+    private static let nextGlyphs: Set<String> = [">", "›", "»", ">>", "＞", "〉", "》"]
     private static let closeWords = [
         "close", "dismiss", "skip", "關閉", "关闭", "略過", "略过", "跳過", "跳过",
     ]
@@ -299,6 +301,9 @@ final class AdAutomationEngine: ObservableObject {
         // Set once the ad shows the marks of a network whose top-left
         // control reports the ad.
         var cautiousLeft = false
+        // The last control tapped as a close button, and when.
+        var lastCandidateTap: CGPoint?
+        var lastCandidateTapAt = Date.distantPast
 
         log("start; observeOnly=\(config.observeOnly) probe=\(config.probeCorners) maxAd=\(config.maxAdSeconds)s "
             + "game='\(config.gameName)' start=\(config.startKeywords) confirm=\(config.confirmKeywords)")
@@ -471,6 +476,14 @@ final class AdAutomationEngine: ObservableObject {
                     // The control app can keep naming the game after the player
                     // went to the home screen.
                     let onHomeScreen = Self.looksLikeHomeScreen(elements)
+                    // A page that was just closed can still be reported for a
+                    // moment, and the screen underneath has other controls in
+                    // the same place. So the same spot waits before a second tap.
+                    var recentCloseSpots: [CGPoint] = []
+                    if let spot = lastCandidateTap, Date().timeIntervalSince(lastCandidateTapAt) < 8 {
+                        recentCloseSpots.append(spot)
+                    }
+                    let storePageShowing = items.contains(where: { $0.type == "NavigationBar" })
                     // One line for the on-screen log, with a sample of what was
                     // read; the full list goes to the file only.
                     let sample = items.prefix(12).map { $0.label }.filter { !$0.isEmpty }.joined(separator: " / ")
@@ -512,6 +525,8 @@ final class AdAutomationEngine: ObservableObject {
                             lastOpenStoreTap = Date.distantPast
                             storeClosedAt = nil
                             cautiousLeft = false
+                            lastCandidateTap = nil
+                            lastCandidateTapAt = Date.distantPast
                             status = "Ad started. Waiting for the close button…".localized
                         } else if let confirmItem {
                             log("action: tap confirm \(confirmItem.summary)")
@@ -602,14 +617,19 @@ final class AdAutomationEngine: ObservableObject {
                         note("waiting: countdown '\(lastCountdownLabel)' is showing", kind: "wait")
                     } else if adElapsed >= Self.minimumAdSeconds,
                               let closeItem = Self.closeCandidate(in: items, width: width, height: height,
-                                                                  avoiding: badSpots, earlyControls: earlySpots,
-                                                                  allowLeft: !leftIsSuspect && probeIndex >= 4) {
+                                                                  avoiding: badSpots + recentCloseSpots,
+                                                                  earlyControls: earlySpots,
+                                                                  allowLeft: !leftIsSuspect && probeIndex >= 4,
+                                                                  allowArrow: storeClosedAt != nil || countdownGone
+                                                                      || adElapsed >= TimeInterval(config.maxAdSeconds)) {
                         await saveScreenshot(tag: "close")
                         log("action: tap close \(closeItem.summary)")
                         await tap(x: closeItem.centerX, y: closeItem.centerY)
                         lastCloseTap = CGPoint(x: closeItem.centerX, y: closeItem.centerY)
+                        lastCandidateTap = lastCloseTap
+                        lastCandidateTapAt = Date()
                         closeTaps += 1
-                        if items.contains(where: { $0.type == "NavigationBar" }) {
+                        if storePageShowing {
                             // That was the store page an ad opened. The ad's own
                             // close button comes after it.
                             storeClosedAt = Date()
@@ -628,7 +648,7 @@ final class AdAutomationEngine: ObservableObject {
                               adElapsed >= TimeInterval(config.maxAdSeconds) || countdownGone
                                   || (openStoreTaps > 0 && Date().timeIntervalSince(lastOpenStoreTap) >= 8)
                                   || (storeClosedAt.map { Date().timeIntervalSince($0) >= 4 } ?? false),
-                              width > 0, height > 0,
+                              width > 0, height > 0, !storePageShowing,
                               !probePoints.isEmpty {
                         let point = probePoints[probeIndex % probePoints.count]
                         probeIndex += 1
@@ -920,7 +940,7 @@ final class AdAutomationEngine: ObservableObject {
     /// The most likely close control, or nil when none is on screen yet.
     private static func closeCandidate(in allItems: [AdScreenItem], width: Double, height: Double,
                                        avoiding badSpots: [CGPoint], earlyControls: [CGPoint],
-                                       allowLeft: Bool) -> AdScreenItem? {
+                                       allowLeft: Bool, allowArrow: Bool) -> AdScreenItem? {
         let marks = allItems.filter {
             infoGlyphs.contains($0.label.trimmingCharacters(in: .whitespaces).lowercased())
         }
@@ -957,6 +977,13 @@ final class AdAutomationEngine: ObservableObject {
         // 2. Recognised text: an X near a top corner, or a close word.
         if let glyph = texts.first(where: { isCloseGlyph($0) && isNearTopCorner($0) }) {
             return glyph
+        }
+        // Early on the arrow would skip the ad and lose the reward.
+        if allowArrow, let arrow = texts.first(where: {
+            nextGlyphs.contains($0.label.trimmingCharacters(in: .whitespaces))
+                && $0.centerX > width * 0.78 && $0.centerY < height * 0.3
+        }) {
+            return arrow
         }
         if let word = texts.first(where: { isCloseWord($0) }) {
             return word
