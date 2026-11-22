@@ -12,6 +12,9 @@ import Foundation
 import UIKit
 
 struct AdAutomationConfig {
+    /// Name of the game as the App Store shows it. When set, the control app
+    /// opens the game itself, which is also how it learns which app it is.
+    var gameName: String = ""
     var startKeywords: [String]
     var confirmKeywords: [String]
     var observeOnly: Bool
@@ -75,6 +78,7 @@ final class AdAutomationEngine: ObservableObject {
     private var screenshotCount = 0
     /// Why the run ended by itself, shown in front of the final status.
     private var stopNote: String?
+    private var lastNotes: [String: String] = [:]
 
     private let client = AdRunnerClient.shared
     private static let tickInterval: TimeInterval = 2
@@ -140,6 +144,7 @@ final class AdAutomationEngine: ObservableObject {
         exportURL = nil
         screenshotCount = 0
         stopNote = nil
+        lastNotes = [:]
         openSession()
         BackgroundAudioManager.shared.requestStart()
         BackgroundLocationManager.shared.requestStart()
@@ -191,36 +196,60 @@ final class AdAutomationEngine: ObservableObject {
         var closeTaps = 0
         var consecutiveErrors = 0
         var emptyStarts = 0
+        var sawGame = false
+        var lastTick = Date()
 
         log("start; observeOnly=\(config.observeOnly) probe=\(config.probeCorners) maxAd=\(config.maxAdSeconds)s "
-            + "start=\(config.startKeywords) confirm=\(config.confirmKeywords)")
+            + "game='\(config.gameName)' start=\(config.startKeywords) confirm=\(config.confirmKeywords)")
         status = "Switch to the game now.".localized
+
+        if !config.gameName.isEmpty {
+            game = await openGame(named: config.gameName)
+            if game == nil {
+                status = "Could not open the game. Switch to it yourself.".localized
+            }
+        }
 
         while !Task.isCancelled && Date() < deadline {
             let tickStart = Date()
+            let gap = tickStart.timeIntervalSince(lastTick)
+            if gap > 12 {
+                // Ticks are two seconds apart unless a call is slow or iOS
+                // suspended this app in the background.
+                log("no tick for \(Int(gap))s")
+            }
+            lastTick = tickStart
             do {
                 let info = try await client.call("device_info")
                 consecutiveErrors = 0
                 let system = info["system"] as? [String: Any]
+                // The control app cannot always name the app in front: on recent
+                // iOS it only knows apps it opened itself. So "which app" is
+                // optional here, and whether this app is in front is asked of
+                // this app, not of the control app.
                 let foreground = system?["foreground_app"] as? String
                 let locked = (system?["screen_locked"] as? Bool) ?? false
                 let screen = info["screen"] as? [String: Any]
                 let width = Self.number(info["point_width"]) ?? Self.number(screen?["point_width"]) ?? 0
                 let height = Self.number(info["point_height"]) ?? Self.number(screen?["point_height"]) ?? 0
+                let ownAppInFront = UIApplication.shared.applicationState == .active || foreground == ownBundle
+                let size = "\(Int(width))x\(Int(height))"
 
                 if locked {
                     status = "The screen is locked.".localized
-                    log("screen locked")
-                } else if let foreground, foreground == ownBundle || Self.ignoredApps.contains(foreground) {
-                    if game == nil {
-                        status = "Switch to the game now.".localized
-                    } else {
+                    note("state: screen locked")
+                } else if ownAppInFront {
+                    note("state: this app is in front")
+                    if sawGame {
                         status = "Paused. Go back to the game to continue.".localized
+                    } else if game == nil {
+                        status = "Switch to the game now.".localized
                     }
-                } else if let foreground, game == nil {
-                    game = foreground
-                    log("game = \(foreground); screen \(Int(width))x\(Int(height)) points")
-                    status = "Watching the game…".localized
+                } else if let foreground, Self.ignoredApps.contains(foreground) {
+                    note("state: home screen (\(foreground))")
+                    status = sawGame
+                        ? "Paused. Go back to the game to continue.".localized
+                        : "Switch to the game now.".localized
                 } else if let foreground, let game, foreground != game {
                     // An ad opened another app (App Store, Safari…).
                     let recentlyInAd: Bool
@@ -229,13 +258,24 @@ final class AdAutomationEngine: ObservableObject {
                     } else {
                         recentlyInAd = Date().timeIntervalSince(lastAdEnded) < 90
                     }
-                    log("foreground is \(foreground), not the game")
-                    if recentlyInAd && !config.observeOnly {
+                    note("state: \(foreground) is in front, not the game")
+                    if (recentlyInAd || !sawGame) && !config.observeOnly {
                         log("action: activate \(game)")
                         _ = try? await client.call("activate_app", ["bundle_id": game], timeout: 20)
                     }
-                } else if game != nil {
+                } else if let foreground, game == nil, sawGame {
+                    // The game itself could not be named, so a named app in
+                    // front now is a different one, and there is no identifier
+                    // to switch back with.
+                    note("state: \(foreground) is in front; the game's identifier is unknown, cannot switch back")
+                    status = "Another app is in front. Go back to the game.".localized
+                } else {
                     // In the game: read the screen and decide.
+                    if game == nil, let foreground {
+                        game = foreground
+                    }
+                    sawGame = true
+                    note("state: in the game (\(foreground ?? "unnamed app")); screen \(size) points")
                     var inAd = false
                     var adElapsed: TimeInterval = 0
                     if case .ad(let startedAt) = phase {
@@ -247,7 +287,11 @@ final class AdAutomationEngine: ObservableObject {
                     if inAd || config.observeOnly {
                         items += await readElements()
                     }
-                    log("tick phase=\(inAd ? "ad \(Int(adElapsed))s" : "idle") items=\(items.count)")
+                    // One line for the on-screen log, with a sample of what was
+                    // read; the full list goes to the file only.
+                    let sample = items.prefix(12).map { $0.label }.filter { !$0.isEmpty }.joined(separator: " / ")
+                    note("tick phase=\(inAd ? "ad" : "idle") items=\(items.count): \(String(sample.prefix(140)))",
+                         kind: "tick")
                     for item in items.prefix(70) {
                         log("  " + item.summary)
                     }
@@ -358,6 +402,55 @@ final class AdAutomationEngine: ObservableObject {
                 try? await Task.sleep(nanoseconds: UInt64(remaining * 1_000_000_000))
             }
         }
+    }
+
+    // MARK: - Opening the game
+
+    /// Finds the game by name and brings it to the front through the control
+    /// app. Returns its bundle identifier, or nil when it could not be opened.
+    private func openGame(named name: String) async -> String? {
+        let key = "adGameBundleIDs"
+        var known = (UserDefaults.standard.dictionary(forKey: key) as? [String: String]) ?? [:]
+
+        var candidates: [(id: String, title: String)] = []
+        if let saved = known[name] {
+            candidates.append((saved, name))
+        }
+        status = "Looking up the game…".localized
+        do {
+            let country = Locale.current.region?.identifier.lowercased() ?? "us"
+            let result = try await client.call(
+                "resolve_app",
+                ["text": name, "country": country, "distance": 5],
+                timeout: 25
+            )
+            for app in (result["apps"] as? [[String: Any]]) ?? [] {
+                guard let id = app["bundle_id"] as? String, !id.isEmpty,
+                      !candidates.contains(where: { $0.id == id }) else { continue }
+                candidates.append((id, (app["name"] as? String) ?? id))
+            }
+            let listing = candidates.map { $0.title + " = " + $0.id }.joined(separator: ", ")
+            log("resolve_app '\(name)' (\(country)): \(listing)")
+        } catch {
+            log("resolve_app failed: \(error.localizedDescription)")
+        }
+
+        for candidate in candidates.prefix(6) {
+            if Task.isCancelled { return nil }
+            status = String(format: "Opening %@…".localized, candidate.title)
+            do {
+                _ = try await client.call("activate_app", ["bundle_id": candidate.id], timeout: 20)
+                log("opened \(candidate.title) = \(candidate.id)")
+                known[name] = candidate.id
+                UserDefaults.standard.set(known, forKey: key)
+                return candidate.id
+            } catch {
+                // Not installed, or not the right app: try the next match.
+                log("could not open \(candidate.id): \(error.localizedDescription)")
+            }
+        }
+        log("no installed app matched '\(name)'")
+        return nil
     }
 
     // MARK: - Reading the screen
@@ -530,6 +623,14 @@ final class AdAutomationEngine: ObservableObject {
             sessionFolder = nil
             logHandle = nil
         }
+    }
+
+    /// Logs a line unless it repeats the previous note, so a state that lasts
+    /// many ticks shows once.
+    private func note(_ message: String, kind: String = "state") {
+        guard lastNotes[kind] != message else { return }
+        lastNotes[kind] = message
+        log(message)
     }
 
     private func log(_ message: String) {
