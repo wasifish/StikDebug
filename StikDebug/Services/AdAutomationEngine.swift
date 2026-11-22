@@ -53,6 +53,48 @@ private struct AdScreenItem {
     }
 }
 
+/// Where things are on screen. A landscape game on a phone is reported in two
+/// spaces: recognised text and taps use the device's portrait points, while
+/// accessibility elements use the points of the picture as the player sees it.
+/// Everything is decided in the second space ("content") and converted back
+/// to the first only for tapping.
+private struct AdScreenGeometry {
+    var deviceWidth: Double = 0
+    var deviceHeight: Double = 0
+    /// The picture is turned a quarter relative to the device's portrait points.
+    var rotated = false
+    /// Turned the other way round (the phone held with the other side up).
+    var flipped = false
+
+    var width: Double { rotated ? deviceHeight : deviceWidth }
+    var height: Double { rotated ? deviceWidth : deviceHeight }
+
+    /// Recognised text, moved into the content space.
+    func toContent(_ item: AdScreenItem) -> AdScreenItem {
+        guard rotated else { return item }
+        var moved = item
+        moved.width = item.height
+        moved.height = item.width
+        if flipped {
+            moved.x = deviceHeight - (item.y + item.height)
+            moved.y = item.x
+        } else {
+            moved.x = item.y
+            moved.y = deviceWidth - (item.x + item.width)
+        }
+        return moved
+    }
+
+    /// A content point, as the point to tap.
+    func toDevice(x: Double, y: Double) -> CGPoint {
+        guard rotated else { return CGPoint(x: x, y: y) }
+        if flipped {
+            return CGPoint(x: y, y: deviceHeight - x)
+        }
+        return CGPoint(x: deviceWidth - y, y: x)
+    }
+}
+
 @MainActor
 final class AdAutomationEngine: ObservableObject {
     static let shared = AdAutomationEngine()
@@ -79,6 +121,7 @@ final class AdAutomationEngine: ObservableObject {
     /// Why the run ended by itself, shown in front of the final status.
     private var stopNote: String?
     private var lastNotes: [String: String] = [:]
+    private var geometry = AdScreenGeometry()
 
     private let client = AdRunnerClient.shared
     private static let tickInterval: TimeInterval = 2
@@ -88,6 +131,7 @@ final class AdAutomationEngine: ObservableObject {
 
     private static let keepWatchingLabels: Set<String> = [
         "繼續觀看", "继续观看", "繼續播放", "继续播放", "繼續看", "resume", "keep watching", "resume video",
+        "continue watching", "continue", "keep playing", "繼續觀看影片", "繼續",
     ]
     private static let closeGlyphs: Set<String> = ["x", "×", "✕", "✖", "╳", "ⓧ", "⊗", "⨯", "✗", "✘"]
     private static let closeWords = [
@@ -154,6 +198,7 @@ final class AdAutomationEngine: ObservableObject {
         screenshotCount = 0
         stopNote = nil
         lastNotes = [:]
+        geometry = AdScreenGeometry()
         openSession()
         BackgroundAudioManager.shared.requestStart()
         BackgroundLocationManager.shared.requestStart()
@@ -210,6 +255,13 @@ final class AdAutomationEngine: ObservableObject {
         var lastCloseTap: CGPoint?
         var badSpots: [CGPoint] = []
         var dismissTaps = 0
+        // Controls that were already there while the countdown ran: a close
+        // button only appears afterwards, so these are something else.
+        var earlySpots: [CGPoint] = []
+        var sawCountdown = false
+        var countdownGoneSince: Date?
+        var lastCountdownLabel = ""
+        var lastCountdownChange = Date()
 
         log("start; observeOnly=\(config.observeOnly) probe=\(config.probeCorners) maxAd=\(config.maxAdSeconds)s "
             + "game='\(config.gameName)' start=\(config.startKeywords) confirm=\(config.confirmKeywords)")
@@ -242,10 +294,10 @@ final class AdAutomationEngine: ObservableObject {
                 let foreground = system?["foreground_app"] as? String
                 let locked = (system?["screen_locked"] as? Bool) ?? false
                 let screen = info["screen"] as? [String: Any]
-                let width = Self.number(info["point_width"]) ?? Self.number(screen?["point_width"]) ?? 0
-                let height = Self.number(info["point_height"]) ?? Self.number(screen?["point_height"]) ?? 0
+                let deviceWidth = Self.number(info["point_width"]) ?? Self.number(screen?["point_width"]) ?? 0
+                let deviceHeight = Self.number(info["point_height"]) ?? Self.number(screen?["point_height"]) ?? 0
                 let ownAppInFront = UIApplication.shared.applicationState == .active || foreground == ownBundle
-                let size = "\(Int(width))x\(Int(height))"
+                let size = "\(Int(deviceWidth))x\(Int(deviceHeight))"
 
                 if locked {
                     status = "The screen is locked.".localized
@@ -295,10 +347,59 @@ final class AdAutomationEngine: ObservableObject {
                         adElapsed = Date().timeIntervalSince(startedAt)
                     }
 
-                    var items = await readText()
+                    let texts = await readText()
+                    var elements: [AdScreenItem] = []
                     if inAd || config.observeOnly {
-                        items += await readElements()
+                        elements = await readElements()
                     }
+
+                    // Work out how the picture is turned, then put everything
+                    // into the space the player sees.
+                    geometry.deviceWidth = deviceWidth
+                    geometry.deviceHeight = deviceHeight
+                    if deviceWidth > 0, deviceHeight > 0, let turned = Self.looksRotated(texts) {
+                        geometry.rotated = turned
+                    }
+                    if geometry.rotated, let vote = Self.flipVote(texts: texts, elements: elements, geometry: geometry) {
+                        geometry.flipped = vote
+                    }
+                    note("screen: content \(Int(geometry.width))x\(Int(geometry.height)) "
+                         + "rotated=\(geometry.rotated) flipped=\(geometry.flipped)", kind: "geometry")
+                    let width = geometry.width
+                    let height = geometry.height
+                    let items = texts.map { geometry.toContent($0) } + elements
+                    let startItem = Self.firstMatch(in: items, keywords: config.startKeywords)
+                    let confirmItem = Self.firstMatch(in: items, keywords: config.confirmKeywords)
+
+                    // Countdown bookkeeping for the ad on screen. The game's own
+                    // page (start button showing) has timers too; those do not count.
+                    var countdownLive = false
+                    if inAd, startItem == nil {
+                        if let running = Self.countdown(in: items, width: width, height: height) {
+                            let label = running.label.trimmingCharacters(in: .whitespaces)
+                            if label != lastCountdownLabel {
+                                lastCountdownLabel = label
+                                lastCountdownChange = Date()
+                            }
+                            sawCountdown = true
+                            countdownGoneSince = nil
+                            // A number that stopped changing is not a countdown.
+                            countdownLive = Date().timeIntervalSince(lastCountdownChange) < 20
+                        } else if sawCountdown, countdownGoneSince == nil {
+                            countdownGoneSince = Date()
+                        }
+                        if countdownLive || adElapsed < Self.minimumAdSeconds {
+                            for control in Self.cornerControls(in: items, width: width, height: height) {
+                                let spot = CGPoint(x: control.centerX, y: control.centerY)
+                                if !Self.isNear(spot, any: earlySpots) {
+                                    earlySpots.append(spot)
+                                    log("control at \(Int(spot.x)),\(Int(spot.y)) is there before the ad can be closed; "
+                                        + "it is not a close button")
+                                }
+                            }
+                        }
+                    }
+                    let countdownGone = countdownGoneSince.map { Date().timeIntervalSince($0) >= 6 } ?? false
                     // One line for the on-screen log, with a sample of what was
                     // read; the full list goes to the file only.
                     let sample = items.prefix(12).map { $0.label }.filter { !$0.isEmpty }.joined(separator: " / ")
@@ -314,9 +415,6 @@ final class AdAutomationEngine: ObservableObject {
                         await saveScreenshot(tag: inAd ? "ad" : "watch")
                     }
 
-                    let startItem = Self.firstMatch(in: items, keywords: config.startKeywords)
-                    let confirmItem = Self.firstMatch(in: items, keywords: config.confirmKeywords)
-
                     if config.observeOnly {
                         status = "Recording only. Nothing is tapped.".localized
                     } else if !inAd {
@@ -328,6 +426,11 @@ final class AdAutomationEngine: ObservableObject {
                             closeTaps = 0
                             lastCloseTap = nil
                             dismissTaps = 0
+                            earlySpots = []
+                            sawCountdown = false
+                            countdownGoneSince = nil
+                            lastCountdownLabel = ""
+                            lastCountdownChange = Date()
                             status = "Ad started. Waiting for the close button…".localized
                         } else if let confirmItem {
                             log("action: tap confirm \(confirmItem.summary)")
@@ -369,16 +472,25 @@ final class AdAutomationEngine: ObservableObject {
                             badSpots.append(spot)
                             log("\(Int(spot.x)),\(Int(spot.y)) opened a report sheet; it will not be tapped again")
                         }
-                        let point: CGPoint
-                        switch dismissTaps % 3 {
-                        case 0: point = CGPoint(x: width * 0.04, y: height * 0.5)
-                        case 1: point = CGPoint(x: width * 0.96, y: height * 0.5)
-                        default: point = lastCloseTap ?? CGPoint(x: width * 0.04, y: height * 0.5)
+                        if dismissTaps < 8 {
+                            // Beside the sheet first, then the corner where a
+                            // close button usually is. Never "Submit".
+                            let corner = Self.cornerPoints(width: width, height: height)[0]
+                            let point: CGPoint
+                            switch dismissTaps % 4 {
+                            case 0: point = CGPoint(x: width * 0.2, y: height * 0.5)
+                            case 1: point = CGPoint(x: width * 0.8, y: height * 0.5)
+                            case 2: point = corner
+                            default: point = lastCloseTap ?? corner
+                            }
+                            dismissTaps += 1
+                            await saveScreenshot(tag: "report")
+                            log("action: dismiss report sheet ('\(sheet.label)') at \(Int(point.x)),\(Int(point.y))")
+                            await tap(x: point.x, y: point.y)
+                        } else {
+                            note("the report sheet ('\(sheet.label)') could not be dismissed", kind: "wait")
+                            status = "A report window is open. Close it by hand.".localized
                         }
-                        dismissTaps += 1
-                        await saveScreenshot(tag: "report")
-                        log("action: dismiss report sheet ('\(sheet.label)') at \(Int(point.x)),\(Int(point.y))")
-                        await tap(x: point.x, y: point.y)
                     } else if let keepWatching = items.first(where: {
                         Self.keepWatchingLabels.contains($0.label.trimmingCharacters(in: .whitespaces).lowercased())
                     }) {
@@ -388,22 +500,22 @@ final class AdAutomationEngine: ObservableObject {
                     } else if let confirmItem {
                         log("action: tap confirm \(confirmItem.summary)")
                         await tap(x: confirmItem.centerX, y: confirmItem.centerY)
-                    } else if adElapsed < TimeInterval(config.maxAdSeconds),
-                              let countdown = Self.countdown(in: items, width: width, height: height) {
+                    } else if countdownLive {
                         // Closing while the countdown runs gives up the reward.
-                        note("waiting: countdown '\(countdown.label)' is showing", kind: "wait")
+                        note("waiting: countdown '\(lastCountdownLabel)' is showing", kind: "wait")
                     } else if adElapsed >= Self.minimumAdSeconds,
                               let closeItem = Self.closeCandidate(in: items, width: width, height: height,
-                                                                  avoiding: badSpots) {
+                                                                  avoiding: badSpots, earlyControls: earlySpots) {
                         await saveScreenshot(tag: "close")
                         log("action: tap close \(closeItem.summary)")
                         await tap(x: closeItem.centerX, y: closeItem.centerY)
                         lastCloseTap = CGPoint(x: closeItem.centerX, y: closeItem.centerY)
                         closeTaps += 1
-                    } else if config.probeCorners, adElapsed >= TimeInterval(config.maxAdSeconds),
+                    } else if config.probeCorners,
+                              adElapsed >= TimeInterval(config.maxAdSeconds) || countdownGone,
                               width > 0, height > 0,
                               case let points = Self.cornerPoints(width: width, height: height)
-                                  .filter({ !Self.isNear($0, any: badSpots) }),
+                                  .filter({ !Self.isNear($0, any: badSpots) && !Self.isNear($0, any: earlySpots) }),
                               !points.isEmpty {
                         let point = points[probeIndex % points.count]
                         probeIndex += 1
@@ -569,6 +681,67 @@ final class AdAutomationEngine: ObservableObject {
         }
     }
 
+    /// Whether recognised text runs sideways, which is how a landscape game
+    /// shows up in the device's portrait points. Nil when there is too little
+    /// text to tell.
+    private static func looksRotated(_ texts: [AdScreenItem]) -> Bool? {
+        let words = texts.filter { $0.label.trimmingCharacters(in: .whitespaces).count >= 3 }
+        guard words.count >= 3 else { return nil }
+        let sideways = words.filter { $0.height > $0.width * 1.3 }.count
+        if sideways * 3 >= words.count * 2 { return true }
+        if sideways * 3 <= words.count { return false }
+        return nil
+    }
+
+    /// Which way round the picture is turned, from texts that show up both as
+    /// recognised text and as an accessibility element. Nil when none match.
+    private static func flipVote(texts: [AdScreenItem], elements: [AdScreenItem],
+                                 geometry: AdScreenGeometry) -> Bool? {
+        var normal = geometry
+        normal.flipped = false
+        var turned = geometry
+        turned.flipped = true
+        var normalVotes = 0
+        var turnedVotes = 0
+        for element in elements {
+            let label = element.label.trimmingCharacters(in: .whitespaces).lowercased()
+            // A countdown is read at two slightly different moments, so numbers
+            // match when they are close.
+            guard label.count >= 2,
+                  let text = texts.first(where: {
+                      let other = $0.label.trimmingCharacters(in: .whitespaces).lowercased()
+                      if other == label { return true }
+                      if let a = Int(other), let b = Int(label) { return abs(a - b) <= 3 }
+                      return false
+                  }) else { continue }
+            let first = normal.toContent(text)
+            let second = turned.toContent(text)
+            let firstDistance = hypot(first.centerX - element.centerX, first.centerY - element.centerY)
+            let secondDistance = hypot(second.centerX - element.centerX, second.centerY - element.centerY)
+            guard min(firstDistance, secondDistance) < 60 else { continue }
+            if firstDistance < secondDistance {
+                normalVotes += 1
+            } else {
+                turnedVotes += 1
+            }
+        }
+        if normalVotes == turnedVotes { return nil }
+        return turnedVotes > normalVotes
+    }
+
+    /// Small unlabelled buttons or images in a top corner.
+    private static func cornerControls(in items: [AdScreenItem], width: Double, height: Double) -> [AdScreenItem] {
+        guard width > 0, height > 0 else { return [] }
+        return items.filter { item in
+            item.source == .element
+                && (item.type == "Button" || item.type == "Image")
+                && item.label.trimmingCharacters(in: .whitespaces).isEmpty
+                && (12...64).contains(item.width) && (12...64).contains(item.height)
+                && (item.centerX < width * 0.22 || item.centerX > width * 0.78)
+                && item.centerY < height * 0.3
+        }
+    }
+
     private static func isNear(_ point: CGPoint, any spots: [CGPoint]) -> Bool {
         spots.contains { abs($0.x - point.x) < 28 && abs($0.y - point.y) < 28 }
     }
@@ -610,7 +783,7 @@ final class AdAutomationEngine: ObservableObject {
 
     /// The most likely close control, or nil when none is on screen yet.
     private static func closeCandidate(in allItems: [AdScreenItem], width: Double, height: Double,
-                                       avoiding badSpots: [CGPoint]) -> AdScreenItem? {
+                                       avoiding badSpots: [CGPoint], earlyControls: [CGPoint]) -> AdScreenItem? {
         let marks = allItems.filter {
             infoGlyphs.contains($0.label.trimmingCharacters(in: .whitespaces).lowercased())
         }
@@ -654,36 +827,44 @@ final class AdAutomationEngine: ObservableObject {
         // 3. A small unlabelled button or image in a top corner. Close buttons
         // sit on the right far more often than on the left, where report and
         // information marks usually are, so the right-most one goes first.
-        return elements.filter { item in
-            (item.type == "Button" || item.type == "Image")
-                && item.label.isEmpty
-                && (12...64).contains(item.width) && (12...64).contains(item.height)
-                && isNearTopCorner(item)
-        }.max { $0.centerX < $1.centerX }
+        return cornerControls(in: items, width: width, height: height)
+            .filter { !isNear(CGPoint(x: $0.centerX, y: $0.centerY), any: earlyControls) }
+            .max { $0.centerX < $1.centerX }
     }
 
     private static func cornerPoints(width: Double, height: Double) -> [CGPoint] {
         // Portrait screens keep close buttons below the status bar area.
-        let top: Double = height > width ? 72 : 32
-        var points = [
-            CGPoint(x: width - 32, y: top),
-            CGPoint(x: 32, y: top),
-            CGPoint(x: width - 32, y: top + 28),
-            CGPoint(x: 32, y: top + 28),
-        ]
         if width > height {
-            // Landscape ads are often inset by the notch area on both sides.
-            points.insert(CGPoint(x: width - 95, y: 40), at: 1)
-            points.append(CGPoint(x: 95, y: 40))
+            // Landscape ads are usually inset by the notch area on both
+            // sides, so the inset corner comes first. Right before left.
+            return [
+                CGPoint(x: width - 95, y: 41),
+                CGPoint(x: width - 32, y: 32),
+                CGPoint(x: width - 62, y: 62),
+                CGPoint(x: 32, y: 32),
+                CGPoint(x: 95, y: 41),
+                CGPoint(x: 62, y: 62),
+            ]
         }
-        return points
+        return [
+            CGPoint(x: width - 32, y: 72),
+            CGPoint(x: 32, y: 72),
+            CGPoint(x: width - 32, y: 100),
+            CGPoint(x: 32, y: 100),
+        ]
     }
 
     // MARK: - Actions
 
+    /// Taps a point given in content points.
     private func tap(x: Double, y: Double) async {
+        let point = geometry.toDevice(x: x, y: y)
+        if geometry.rotated {
+            log("  tap \(Int(x)),\(Int(y)) on screen = \(Int(point.x)),\(Int(point.y)) on the device")
+        }
         do {
-            _ = try await client.call("tap", ["x": x, "y": y, "settle": false, "fast": true], timeout: 20)
+            _ = try await client.call("tap", ["x": Double(point.x), "y": Double(point.y), "settle": false, "fast": true],
+                                      timeout: 20)
         } catch {
             log("tap failed: \(error.localizedDescription)")
         }
