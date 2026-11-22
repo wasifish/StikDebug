@@ -9329,6 +9329,142 @@
           }
         }
       }
+    },
+    "Game": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Game"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "遊戲"
+          }
+        }
+      }
+    },
+    "Game name, as shown in the App Store": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Game name, as shown in the App Store"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "遊戲名稱（照 App Store 上的名稱）"
+          }
+        }
+      }
+    },
+    "Start opens this game for you. Leave it empty to switch to the game yourself.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start opens this game for you. Leave it empty to switch to the game yourself."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按下開始後會自動打開這個遊戲。留空的話請自己切換到遊戲。"
+          }
+        }
+      }
+    },
+    "Leave the game on the page with the ad button. Come back here to stop.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leave the game on the page with the ad button. Come back here to stop."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "請讓遊戲停在有廣告按鈕的那一頁。要停止時回到這裡。"
+          }
+        }
+      }
+    },
+    "Looking up the game…": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Looking up the game…"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在尋找遊戲…"
+          }
+        }
+      }
+    },
+    "Opening %@…": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opening %@…"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在打開 %@…"
+          }
+        }
+      }
+    },
+    "Could not open the game. Switch to it yourself.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not open the game. Switch to it yourself."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打不開這個遊戲，請自己切換過去。"
+          }
+        }
+      }
+    },
+    "Another app is in front. Go back to the game.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Another app is in front. Go back to the game."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目前是其他 App 在前面，請回到遊戲。"
+          }
+        }
+      }
     }
   },
   "version": "1.3"
