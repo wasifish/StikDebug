@@ -153,6 +153,11 @@ final class AdAutomationEngine: ObservableObject {
     /// Small marks that open information or report pages, never a close button.
     private static let infoGlyphs: Set<String> = ["!", "！", "i", "ⓘ", "ℹ", "?", "？", "ad", "ads", "廣告", "广告"]
     private static let countdownWords = ["秒", "sec", "剩", "remaining", "reward in"]
+    /// The control of a playable ad that shows the store page; on those ads the
+    /// close button only appears after that page was opened and closed.
+    private static let openStoreWords = ["open store", "打開商店", "開啟商店", "前往商店", "skip to store"]
+    /// The button that closes the store page. Whole label only.
+    private static let storeDoneLabels: Set<String> = ["完成", "done"]
     /// A clock such as "18小時56分58秒" belongs to the game, not to an ad.
     private static let clockMarks = ["時", "时", "分", "天", "hour", "min", "day", ":", "："]
     /// Titles of the window a game shows when it hands out the reward.
@@ -285,7 +290,11 @@ final class AdAutomationEngine: ObservableObject {
         var sawCountdown = false
         var countdownGoneSince: Date?
         var lastCountdownLabel = ""
-        var lastCountdownChange = Date()
+        var lastCountdownValue: Int?
+        var lastCountdownProgress = Date.distantPast
+        var countdownFirstSeen: Date?
+        var openStoreTaps = 0
+        var lastOpenStoreTap = Date.distantPast
 
         log("start; observeOnly=\(config.observeOnly) probe=\(config.probeCorners) maxAd=\(config.maxAdSeconds)s "
             + "game='\(config.gameName)' start=\(config.startKeywords) confirm=\(config.confirmKeywords)")
@@ -407,14 +416,27 @@ final class AdAutomationEngine: ObservableObject {
                     if inAd, startItem == nil {
                         if let running = Self.countdown(in: items, width: width, height: height) {
                             let label = running.label.trimmingCharacters(in: .whitespaces)
-                            if label != lastCountdownLabel {
-                                lastCountdownLabel = label
-                                lastCountdownChange = Date()
+                            let value = Int(String(label.filter { $0.isASCII && $0.isNumber }.prefix(4)))
+                            if countdownFirstSeen == nil {
+                                countdownFirstSeen = Date()
                             }
-                            sawCountdown = true
+                            if label != lastCountdownLabel {
+                                // Only a number going down is a countdown. A
+                                // score in a playable ad goes up or stays.
+                                if let value, let previous = lastCountdownValue, value < previous {
+                                    lastCountdownProgress = Date()
+                                    sawCountdown = true
+                                }
+                                lastCountdownLabel = label
+                                if let value {
+                                    lastCountdownValue = value
+                                }
+                            }
                             countdownGoneSince = nil
-                            // A number that stopped changing is not a countdown.
-                            countdownLive = Date().timeIntervalSince(lastCountdownChange) < 20
+                            // A few seconds to see which way the number moves,
+                            // then it has to keep going down.
+                            let sinceFirst = Date().timeIntervalSince(countdownFirstSeen ?? Date())
+                            countdownLive = sinceFirst < 8 || Date().timeIntervalSince(lastCountdownProgress) < 20
                         } else if sawCountdown, countdownGoneSince == nil {
                             countdownGoneSince = Date()
                         }
@@ -461,7 +483,11 @@ final class AdAutomationEngine: ObservableObject {
                             sawCountdown = false
                             countdownGoneSince = nil
                             lastCountdownLabel = ""
-                            lastCountdownChange = Date()
+                            lastCountdownValue = nil
+                            lastCountdownProgress = Date.distantPast
+                            countdownFirstSeen = nil
+                            openStoreTaps = 0
+                            lastOpenStoreTap = Date.distantPast
                             status = "Ad started. Waiting for the close button…".localized
                         } else if let confirmItem {
                             log("action: tap confirm \(confirmItem.summary)")
@@ -538,6 +564,10 @@ final class AdAutomationEngine: ObservableObject {
                         // The ad is over and the game is handing out the reward.
                         log("action: tap claim \(claim.summary)")
                         await tap(x: claim.centerX, y: claim.centerY)
+                    } else if let done = Self.storeDoneButton(in: items, height: height) {
+                        // The store page an ad opened: close it to get back.
+                        log("action: tap store done \(done.summary)")
+                        await tap(x: done.centerX, y: done.centerY)
                     } else if countdownLive {
                         // Closing while the countdown runs gives up the reward.
                         note("waiting: countdown '\(lastCountdownLabel)' is showing", kind: "wait")
@@ -549,8 +579,19 @@ final class AdAutomationEngine: ObservableObject {
                         await tap(x: closeItem.centerX, y: closeItem.centerY)
                         lastCloseTap = CGPoint(x: closeItem.centerX, y: closeItem.centerY)
                         closeTaps += 1
+                    } else if adElapsed >= Self.minimumAdSeconds, openStoreTaps < 3,
+                              Date().timeIntervalSince(lastOpenStoreTap) >= 10,
+                              let openStore = Self.firstMatch(in: items, keywords: Self.openStoreWords) {
+                        // No close button yet, and the ad offers its store page:
+                        // on these ads the close button comes after that page.
+                        openStoreTaps += 1
+                        lastOpenStoreTap = Date()
+                        await saveScreenshot(tag: "store")
+                        log("action: tap open store \(openStore.summary)")
+                        await tap(x: openStore.centerX, y: openStore.centerY)
                     } else if config.probeCorners,
-                              adElapsed >= TimeInterval(config.maxAdSeconds) || countdownGone,
+                              adElapsed >= TimeInterval(config.maxAdSeconds) || countdownGone
+                                  || (openStoreTaps > 0 && Date().timeIntervalSince(lastOpenStoreTap) >= 8),
                               width > 0, height > 0,
                               case let points = Self.cornerPoints(width: width, height: height)
                                   .filter({ !Self.isNear($0, any: badSpots) && !Self.isNear($0, any: earlySpots) }),
@@ -791,6 +832,15 @@ final class AdAutomationEngine: ObservableObject {
             return nil
         }
         return title
+    }
+
+    /// "Done" in the upper part of the screen, as on the store page.
+    private static func storeDoneButton(in items: [AdScreenItem], height: Double) -> AdScreenItem? {
+        guard height > 0 else { return nil }
+        return items.first { item in
+            item.centerY < height * 0.3
+                && storeDoneLabels.contains(item.label.trimmingCharacters(in: .whitespaces).lowercased())
+        }
     }
 
     /// The button that collects the reward. Without a reward title on screen
