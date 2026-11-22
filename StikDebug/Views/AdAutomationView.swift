@@ -16,6 +16,8 @@ struct AdAutomationView: View {
     @AppStorage("adMaxSeconds") private var maxAdSeconds = 45
     @AppStorage("adRunMinutes") private var runMinutes = 30
 
+    @State private var copied = false
+
     private var runnerText: String {
         switch engine.runnerState {
         case .unknown:
@@ -134,6 +136,19 @@ struct AdAutomationView: View {
             }
 
             if !engine.recentLog.isEmpty {
+                Section {
+                    Button(copied ? "Copied".localized : "Copy the Log".localized) {
+                        UIPasteboard.general.string = engine.transcriptText()
+                        copied = true
+                        Task {
+                            try? await Task.sleep(nanoseconds: 2_000_000_000)
+                            copied = false
+                        }
+                    }
+                } footer: {
+                    Text("Paste it into the chat to report a problem.")
+                }
+
                 Section {
                     ForEach(Array(engine.recentLog.suffix(25).enumerated()), id: \.offset) { entry in
                         Text(verbatim: entry.element)
