@@ -32,6 +32,15 @@ struct AdAutomationConfig {
     }
 }
 
+/// The ad network showing the ad, told from what its player exposes. Each
+/// one keeps its close control in a different place.
+private enum AdNetwork: String {
+    case unknown
+    case appLovin
+    case pangle
+    case mintegral
+}
+
 /// One thing on screen that could be tapped: recognised text or an
 /// accessibility element. Coordinates are in screen points.
 private struct AdScreenItem {
@@ -312,6 +321,14 @@ final class AdAutomationEngine: ObservableObject {
         var lastCandidateTapAt = Date.distantPast
         var reportSubmits = 0
         var lastReportSubmit = Date.distantPast
+        // Where the countdown was last read, and when it should reach zero.
+        var countdownSpot: CGPoint?
+        var countdownEnds = Date.distantPast
+        // Tried spots that brought up the store page instead of closing the ad.
+        var storeSpots: [CGPoint] = []
+        var lastProbe: CGPoint?
+        var lastProbeAt = Date.distantPast
+        var network = AdNetwork.unknown
 
         log("start; observeOnly=\(config.observeOnly) probe=\(config.probeCorners) maxAd=\(config.maxAdSeconds)s "
             + "game='\(config.gameName)' start=\(config.startKeywords) confirm=\(config.confirmKeywords) "
@@ -444,6 +461,12 @@ final class AdAutomationEngine: ObservableObject {
                                 if let value, let previous = lastCountdownValue, value < previous {
                                     lastCountdownProgress = Date()
                                     sawCountdown = true
+                                    if previous - value <= 10 {
+                                        // A plausible step: trust the number for
+                                        // when the countdown ends and where it is.
+                                        countdownEnds = Date().addingTimeInterval(TimeInterval(value))
+                                        countdownSpot = CGPoint(x: running.centerX, y: running.centerY)
+                                    }
                                 }
                                 lastCountdownLabel = label
                                 if let value {
@@ -455,8 +478,14 @@ final class AdAutomationEngine: ObservableObject {
                             // then it has to keep going down.
                             let sinceFirst = Date().timeIntervalSince(countdownFirstSeen ?? Date())
                             countdownLive = sinceFirst < 8 || Date().timeIntervalSince(lastCountdownProgress) < 20
-                        } else if sawCountdown, countdownGoneSince == nil {
-                            countdownGoneSince = Date()
+                        } else if sawCountdown {
+                            if Date() < countdownEnds {
+                                // The number was not read this time, but it has
+                                // not run out yet.
+                                countdownLive = true
+                            } else if countdownGoneSince == nil {
+                                countdownGoneSince = Date()
+                            }
                         }
                         if countdownLive || adElapsed < Self.minimumAdSeconds {
                             for control in Self.cornerControls(in: items, width: width, height: height) {
@@ -469,7 +498,7 @@ final class AdAutomationEngine: ObservableObject {
                             }
                         }
                     }
-                    let countdownGone = countdownGoneSince.map { Date().timeIntervalSince($0) >= 6 } ?? false
+                    let countdownGone = countdownGoneSince.map { Date().timeIntervalSince($0) >= 3 } ?? false
                     // Small unlabelled controls at the top left. On the ads seen
                     // so far that is the report mark, and it moves when the ad
                     // changes its frame, so it is looked up again every time.
@@ -479,9 +508,17 @@ final class AdAutomationEngine: ObservableObject {
                     if inAd, items.contains(where: { Self.isReportNetworkMark($0.label) }) {
                         cautiousLeft = true
                     }
+                    if inAd, network == .unknown {
+                        network = Self.adNetwork(in: items)
+                        if network != .unknown {
+                            log("ad network: \(network.rawValue)")
+                        }
+                    }
                     let leftIsSuspect = cautiousLeft || earlySpots.contains(where: { $0.x < width / 2 })
                     let probePoints = Self.probePoints(width: width, height: height, leftControls: leftControls,
-                                                       earlySpots: earlySpots, badSpots: badSpots)
+                                                       earlySpots: earlySpots, badSpots: badSpots,
+                                                       network: network, countdownSpot: countdownSpot,
+                                                       storeSpots: storeSpots, avoidLeft: leftIsSuspect)
                     // The control app can keep naming the game after the player
                     // went to the home screen.
                     let onHomeScreen = Self.looksLikeHomeScreen(elements)
@@ -493,6 +530,12 @@ final class AdAutomationEngine: ObservableObject {
                         recentCloseSpots.append(spot)
                     }
                     let storePageShowing = items.contains(where: { $0.type == "NavigationBar" })
+                    if storePageShowing, let probe = lastProbe, Date().timeIntervalSince(lastProbeAt) < 10 {
+                        // That spot is part of the ad, not its close button.
+                        storeSpots.append(probe)
+                        lastProbe = nil
+                        log("\(Int(probe.x)),\(Int(probe.y)) opened the store page instead of closing the ad")
+                    }
                     // One line for the on-screen log, with a sample of what was
                     // read; the full list goes to the file only.
                     let sample = items.prefix(12).map { $0.label }.filter { !$0.isEmpty }.joined(separator: " / ")
@@ -515,7 +558,9 @@ final class AdAutomationEngine: ObservableObject {
                         note("state: the home screen is showing; nothing is tapped", kind: "wait")
                         status = "Paused. Go back to the game to continue.".localized
                     } else if !inAd {
-                        if let startItem {
+                        // Right after an ad the game shows its reward window; a
+                        // tap on the start button then goes nowhere.
+                        if let startItem, Date().timeIntervalSince(lastAdEnded) >= 5 {
                             log("action: tap start \(startItem.summary)")
                             await tap(x: startItem.centerX, y: startItem.centerY)
                             phase = .ad(startedAt: Date())
@@ -536,6 +581,14 @@ final class AdAutomationEngine: ObservableObject {
                             cautiousLeft = false
                             lastCandidateTap = nil
                             lastCandidateTapAt = Date.distantPast
+                            // Spots are only meaningful within one ad.
+                            badSpots = []
+                            countdownSpot = nil
+                            countdownEnds = Date.distantPast
+                            storeSpots = []
+                            lastProbe = nil
+                            lastProbeAt = Date.distantPast
+                            network = .unknown
                             status = "Ad started. Waiting for the close button…".localized
                         } else if let confirmItem {
                             log("action: tap confirm \(confirmItem.summary)")
@@ -672,7 +725,7 @@ final class AdAutomationEngine: ObservableObject {
                               adElapsed >= TimeInterval(config.maxAdSeconds) || countdownGone
                                   || (openStoreTaps > 0 && Date().timeIntervalSince(lastOpenStoreTap) >= 8)
                                   || (storeClosedAt.map { Date().timeIntervalSince($0) >= 4 } ?? false),
-                              width > 0, height > 0, !storePageShowing,
+                              width > 0, height > 0, !storePageShowing, storeSpots.count < 5,
                               !probePoints.isEmpty {
                         let point = probePoints[probeIndex % probePoints.count]
                         probeIndex += 1
@@ -680,6 +733,8 @@ final class AdAutomationEngine: ObservableObject {
                         log("action: probe corner \(Int(point.x)),\(Int(point.y))")
                         await tap(x: point.x, y: point.y)
                         lastCloseTap = point
+                        lastProbe = point
+                        lastProbeAt = Date()
                         closeTaps += 1
                     } else if adElapsed >= Self.abandonAdSeconds {
                         log("gave up on this ad after \(Int(adElapsed))s")
@@ -695,13 +750,23 @@ final class AdAutomationEngine: ObservableObject {
                     break
                 }
                 consecutiveErrors += 1
-                if consecutiveErrors >= 15 {
+                if consecutiveErrors >= 3 {
+                    status = "The control app is not responding. Open the iCTRL runner again.".localized
+                }
+                if consecutiveErrors >= 8 {
+                    log("the control app did not answer 8 times in a row; stopping")
+                    stopNote = "The control app is not responding. Open the iCTRL runner again.".localized
                     break
                 }
             } catch {
                 log("error: \(error.localizedDescription)")
                 consecutiveErrors += 1
-                if consecutiveErrors >= 15 {
+                if consecutiveErrors >= 3 {
+                    status = "The control app is not responding. Open the iCTRL runner again.".localized
+                }
+                if consecutiveErrors >= 8 {
+                    log("the control app did not answer 8 times in a row; stopping")
+                    stopNote = "The control app is not responding. Open the iCTRL runner again.".localized
                     break
                 }
             }
@@ -1018,7 +1083,11 @@ final class AdAutomationEngine: ObservableObject {
         }) {
             return arrow
         }
-        if let word = texts.first(where: { isCloseWord($0) }) {
+        // Text inside the ad's own picture can say "close" too, so a
+        // recognised word only counts near a top corner or when it is short.
+        if let word = texts.first(where: {
+            isCloseWord($0) && (isNearTopCorner($0) || $0.label.trimmingCharacters(in: .whitespaces).count <= 4)
+        }) {
             return word
         }
         // 3. A small unlabelled button or image in a top corner. Close buttons
@@ -1036,12 +1105,19 @@ final class AdAutomationEngine: ObservableObject {
     /// report mark on the left has the close button as its mirror image on
     /// the right, so those spots come first; then the usual corners.
     private static func probePoints(width: Double, height: Double, leftControls: [CGPoint],
-                                    earlySpots: [CGPoint], badSpots: [CGPoint]) -> [CGPoint] {
+                                    earlySpots: [CGPoint], badSpots: [CGPoint],
+                                    network: AdNetwork = .unknown, countdownSpot: CGPoint? = nil,
+                                    storeSpots: [CGPoint] = [], avoidLeft: Bool = false) -> [CGPoint] {
         guard width > 0, height > 0 else { return [] }
         var points: [CGPoint] = []
-        func add(_ point: CGPoint) {
+        func add(_ point: CGPoint, storeLimit: Int = 1) {
             guard point.x > 0, point.y > 0 else { return }
             if isNear(point, any: badSpots) || isNear(point, any: earlySpots) || isNear(point, any: leftControls) {
+                return
+            }
+            // A spot that brought up the store page is part of the ad.
+            let storeOpens = storeSpots.filter { abs($0.x - point.x) < 8 && abs($0.y - point.y) < 8 }.count
+            if storeOpens >= storeLimit {
                 return
             }
             if points.contains(where: { abs($0.x - point.x) < 8 && abs($0.y - point.y) < 8 }) {
@@ -1049,18 +1125,47 @@ final class AdAutomationEngine: ObservableObject {
             }
             points.append(point)
         }
+        // Where the countdown was: on several networks the close button
+        // takes its place when it runs out.
+        if let spot = countdownSpot, spot.x > width / 2, spot.y < height * 0.3 {
+            add(spot)
+        }
+        if network == .appLovin, width > height {
+            // Its skip control sits at the top left and is not exposed to
+            // accessibility or text recognition. It may show the store page
+            // first and close the ad on the next tap, hence two tries.
+            add(CGPoint(x: 27, y: 82), storeLimit: 2)
+            add(CGPoint(x: width - 27, y: 82))
+        }
         let leftKnown = leftControls + (earlySpots + badSpots).filter { $0.x < width * 0.3 }
         for spot in leftKnown {
             add(CGPoint(x: width - spot.x, y: spot.y))
         }
         for point in cornerPoints(width: width, height: height) {
             // With a known control on the left, a tap there can only go wrong.
-            if !leftKnown.isEmpty && point.x < width / 2 {
+            if (avoidLeft || !leftKnown.isEmpty) && point.x < width / 2 {
                 continue
             }
             add(point)
         }
         return points
+    }
+
+    /// Which network's player is on screen, from its accessibility elements.
+    private static func adNetwork(in items: [AdScreenItem]) -> AdNetwork {
+        for item in items where item.source == .element {
+            let label = item.label.lowercased()
+            if label.contains("app lovin") || label.contains("applovin") {
+                return .appLovin
+            }
+            if label == "pangle" {
+                return .pangle
+            }
+            if label.contains("mutebtn") {
+                return .mintegral
+            }
+        }
+        return .unknown
     }
 
     /// Marks of an ad network whose top-left control reports the ad. The
