@@ -9516,6 +9516,40 @@
           }
         }
       }
+    },
+    "Press Submit when a report window will not close": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Press Submit when a report window will not close"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "檢舉視窗關不掉時按 Submit"
+          }
+        }
+      }
+    },
+    "Submit sends a report about the ad to the ad network. It is pressed at most 5 times per run.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Submit sends a report about the ad to the ad network. It is pressed at most 5 times per run."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按 Submit 會向廣告商送出一筆對這則廣告的檢舉。每次執行最多按 5 次。"
+          }
+        }
+      }
     }
   },
   "version": "1.3"
