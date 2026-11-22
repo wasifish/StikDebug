@@ -21,6 +21,9 @@ struct AdAutomationConfig {
     var probeCorners: Bool
     var maxAdSeconds: Int
     var runMinutes: Int
+    /// Press the report sheet's own button when nothing else closes it. Off
+    /// unless the player turns it on: it sends a report about the ad.
+    var submitReportSheet: Bool = false
 
     static func keywords(from text: String) -> [String] {
         text.split(whereSeparator: { $0 == "," || $0 == "，" || $0 == "、" || $0 == "\n" })
@@ -134,6 +137,9 @@ final class AdAutomationEngine: ObservableObject {
     private static let minimumAdSeconds: TimeInterval = 5
     private static let abandonAdSeconds: TimeInterval = 240
     private static let maximumScreenshots = 240
+    /// A run never sends more reports than this.
+    private static let maximumReportSubmits = 5
+    private static let reportSubmitLabels: Set<String> = ["submit", "提交", "送出"]
 
     private static let keepWatchingLabels: Set<String> = [
         "繼續觀看", "继续观看", "繼續播放", "继续播放", "繼續看", "resume", "keep watching", "resume video",
@@ -304,9 +310,12 @@ final class AdAutomationEngine: ObservableObject {
         // The last control tapped as a close button, and when.
         var lastCandidateTap: CGPoint?
         var lastCandidateTapAt = Date.distantPast
+        var reportSubmits = 0
+        var lastReportSubmit = Date.distantPast
 
         log("start; observeOnly=\(config.observeOnly) probe=\(config.probeCorners) maxAd=\(config.maxAdSeconds)s "
-            + "game='\(config.gameName)' start=\(config.startKeywords) confirm=\(config.confirmKeywords)")
+            + "game='\(config.gameName)' start=\(config.startKeywords) confirm=\(config.confirmKeywords) "
+            + "submitReport=\(config.submitReportSheet)")
         status = "Switch to the game now.".localized
 
         if !config.gameName.isEmpty {
@@ -566,14 +575,15 @@ final class AdAutomationEngine: ObservableObject {
                     } else if width > 0, height > 0, let sheet = Self.reportSheet(in: items) {
                         // A "report this ad" sheet is open: the control that was
                         // tapped was not a close button. Remember that spot, then
-                        // get rid of the sheet without submitting anything.
+                        // get rid of the sheet. Its own button is only used when
+                        // the player turned that on.
                         if let spot = lastCloseTap, !Self.isNear(spot, any: badSpots) {
                             badSpots.append(spot)
                             log("\(Int(spot.x)),\(Int(spot.y)) opened a report sheet; it will not be tapped again")
                         }
-                        if dismissTaps < 8 {
-                            // Beside the sheet first, then the corner where a
-                            // close button usually is. Never "Submit".
+                        if dismissTaps < (config.submitReportSheet ? 4 : 8) {
+                            // The ad's own close spot first, then beside the
+                            // sheet.
                             // The spot was just added to the bad ones, so this
                             // list starts with its mirror image on the right.
                             let escape = Self.probePoints(width: width, height: height, leftControls: leftControls,
@@ -590,6 +600,20 @@ final class AdAutomationEngine: ObservableObject {
                             await saveScreenshot(tag: "report")
                             log("action: dismiss report sheet ('\(sheet.label)') at \(Int(point.x)),\(Int(point.y))")
                             await tap(x: point.x, y: point.y)
+                        } else if config.submitReportSheet, reportSubmits < Self.maximumReportSubmits,
+                                  Date().timeIntervalSince(lastReportSubmit) >= 6,
+                                  let submit = Self.reportSubmitButton(in: items) {
+                            // The sheet has no cancel button and nothing beside it
+                            // closes it. The player chose this way out.
+                            reportSubmits += 1
+                            lastReportSubmit = Date()
+                            await saveScreenshot(tag: "report")
+                            log("action: tap the report sheet's button \(submit.summary) "
+                                + "(\(reportSubmits) of \(Self.maximumReportSubmits) this run)")
+                            await tap(x: submit.centerX, y: submit.centerY)
+                        } else if config.submitReportSheet, reportSubmits < Self.maximumReportSubmits,
+                                  Date().timeIntervalSince(lastReportSubmit) < 6 {
+                            note("waiting: the report sheet's button was just tapped", kind: "wait")
                         } else {
                             note("the report sheet ('\(sheet.label)') could not be dismissed", kind: "wait")
                             status = "A report window is open. Close it by hand.".localized
@@ -886,6 +910,15 @@ final class AdAutomationEngine: ObservableObject {
             return nil
         }
         return title
+    }
+
+    /// The button that sends the report sheet. An accessibility element is
+    /// preferred because its frame is exact.
+    private static func reportSubmitButton(in items: [AdScreenItem]) -> AdScreenItem? {
+        let matches = items.filter {
+            reportSubmitLabels.contains($0.label.trimmingCharacters(in: .whitespaces).lowercased())
+        }
+        return matches.first(where: { $0.source == .element && $0.type == "Button" }) ?? matches.first
     }
 
     /// "Done" in the upper part of the screen, as on the store page.
