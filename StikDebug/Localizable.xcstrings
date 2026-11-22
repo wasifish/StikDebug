@@ -9567,6 +9567,23 @@
           }
         }
       }
+    },
+    "Could not close this ad. Close it by hand.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not close this ad. Close it by hand."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "這個廣告關不掉，請手動關閉。"
+          }
+        }
+      }
     }
   },
   "version": "1.3"
