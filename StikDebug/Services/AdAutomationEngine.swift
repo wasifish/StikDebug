@@ -295,6 +295,10 @@ final class AdAutomationEngine: ObservableObject {
         var countdownFirstSeen: Date?
         var openStoreTaps = 0
         var lastOpenStoreTap = Date.distantPast
+        var storeClosedAt: Date?
+        // Set once the ad shows the marks of a network whose top-left
+        // control reports the ad.
+        var cautiousLeft = false
 
         log("start; observeOnly=\(config.observeOnly) probe=\(config.probeCorners) maxAd=\(config.maxAdSeconds)s "
             + "game='\(config.gameName)' start=\(config.startKeywords) confirm=\(config.confirmKeywords)")
@@ -452,6 +456,21 @@ final class AdAutomationEngine: ObservableObject {
                         }
                     }
                     let countdownGone = countdownGoneSince.map { Date().timeIntervalSince($0) >= 6 } ?? false
+                    // Small unlabelled controls at the top left. On the ads seen
+                    // so far that is the report mark, and it moves when the ad
+                    // changes its frame, so it is looked up again every time.
+                    let leftControls = Self.cornerControls(in: items, width: width, height: height)
+                        .filter { $0.centerX < width / 2 }
+                        .map { CGPoint(x: $0.centerX, y: $0.centerY) }
+                    if inAd, items.contains(where: { Self.isReportNetworkMark($0.label) }) {
+                        cautiousLeft = true
+                    }
+                    let leftIsSuspect = cautiousLeft || earlySpots.contains(where: { $0.x < width / 2 })
+                    let probePoints = Self.probePoints(width: width, height: height, leftControls: leftControls,
+                                                       earlySpots: earlySpots, badSpots: badSpots)
+                    // The control app can keep naming the game after the player
+                    // went to the home screen.
+                    let onHomeScreen = Self.looksLikeHomeScreen(elements)
                     // One line for the on-screen log, with a sample of what was
                     // read; the full list goes to the file only.
                     let sample = items.prefix(12).map { $0.label }.filter { !$0.isEmpty }.joined(separator: " / ")
@@ -470,6 +489,9 @@ final class AdAutomationEngine: ObservableObject {
 
                     if config.observeOnly {
                         status = "Recording only. Nothing is tapped.".localized
+                    } else if onHomeScreen {
+                        note("state: the home screen is showing; nothing is tapped", kind: "wait")
+                        status = "Paused. Go back to the game to continue.".localized
                     } else if !inAd {
                         if let startItem {
                             log("action: tap start \(startItem.summary)")
@@ -488,6 +510,8 @@ final class AdAutomationEngine: ObservableObject {
                             countdownFirstSeen = nil
                             openStoreTaps = 0
                             lastOpenStoreTap = Date.distantPast
+                            storeClosedAt = nil
+                            cautiousLeft = false
                             status = "Ad started. Waiting for the close button…".localized
                         } else if let confirmItem {
                             log("action: tap confirm \(confirmItem.summary)")
@@ -535,13 +559,17 @@ final class AdAutomationEngine: ObservableObject {
                         if dismissTaps < 8 {
                             // Beside the sheet first, then the corner where a
                             // close button usually is. Never "Submit".
-                            let corner = Self.cornerPoints(width: width, height: height)[0]
+                            // The spot was just added to the bad ones, so this
+                            // list starts with its mirror image on the right.
+                            let escape = Self.probePoints(width: width, height: height, leftControls: leftControls,
+                                                          earlySpots: earlySpots, badSpots: badSpots).first
+                                ?? Self.cornerPoints(width: width, height: height)[0]
                             let point: CGPoint
                             switch dismissTaps % 4 {
-                            case 0: point = CGPoint(x: width * 0.2, y: height * 0.5)
-                            case 1: point = CGPoint(x: width * 0.8, y: height * 0.5)
-                            case 2: point = corner
-                            default: point = lastCloseTap ?? corner
+                            case 0: point = escape
+                            case 1: point = CGPoint(x: width * 0.2, y: height * 0.5)
+                            case 2: point = CGPoint(x: width * 0.8, y: height * 0.5)
+                            default: point = CGPoint(x: width * 0.5, y: height * 0.96)
                             }
                             dismissTaps += 1
                             await saveScreenshot(tag: "report")
@@ -568,17 +596,24 @@ final class AdAutomationEngine: ObservableObject {
                         // The store page an ad opened: close it to get back.
                         log("action: tap store done \(done.summary)")
                         await tap(x: done.centerX, y: done.centerY)
+                        storeClosedAt = Date()
                     } else if countdownLive {
                         // Closing while the countdown runs gives up the reward.
                         note("waiting: countdown '\(lastCountdownLabel)' is showing", kind: "wait")
                     } else if adElapsed >= Self.minimumAdSeconds,
                               let closeItem = Self.closeCandidate(in: items, width: width, height: height,
-                                                                  avoiding: badSpots, earlyControls: earlySpots) {
+                                                                  avoiding: badSpots, earlyControls: earlySpots,
+                                                                  allowLeft: !leftIsSuspect && probeIndex >= 4) {
                         await saveScreenshot(tag: "close")
                         log("action: tap close \(closeItem.summary)")
                         await tap(x: closeItem.centerX, y: closeItem.centerY)
                         lastCloseTap = CGPoint(x: closeItem.centerX, y: closeItem.centerY)
                         closeTaps += 1
+                        if items.contains(where: { $0.type == "NavigationBar" }) {
+                            // That was the store page an ad opened. The ad's own
+                            // close button comes after it.
+                            storeClosedAt = Date()
+                        }
                     } else if adElapsed >= Self.minimumAdSeconds, openStoreTaps < 3,
                               Date().timeIntervalSince(lastOpenStoreTap) >= 10,
                               let openStore = Self.firstMatch(in: items, keywords: Self.openStoreWords) {
@@ -591,12 +626,11 @@ final class AdAutomationEngine: ObservableObject {
                         await tap(x: openStore.centerX, y: openStore.centerY)
                     } else if config.probeCorners,
                               adElapsed >= TimeInterval(config.maxAdSeconds) || countdownGone
-                                  || (openStoreTaps > 0 && Date().timeIntervalSince(lastOpenStoreTap) >= 8),
+                                  || (openStoreTaps > 0 && Date().timeIntervalSince(lastOpenStoreTap) >= 8)
+                                  || (storeClosedAt.map { Date().timeIntervalSince($0) >= 4 } ?? false),
                               width > 0, height > 0,
-                              case let points = Self.cornerPoints(width: width, height: height)
-                                  .filter({ !Self.isNear($0, any: badSpots) && !Self.isNear($0, any: earlySpots) }),
-                              !points.isEmpty {
-                        let point = points[probeIndex % points.count]
+                              !probePoints.isEmpty {
+                        let point = probePoints[probeIndex % probePoints.count]
                         probeIndex += 1
                         await saveScreenshot(tag: "probe")
                         log("action: probe corner \(Int(point.x)),\(Int(point.y))")
@@ -885,7 +919,8 @@ final class AdAutomationEngine: ObservableObject {
 
     /// The most likely close control, or nil when none is on screen yet.
     private static func closeCandidate(in allItems: [AdScreenItem], width: Double, height: Double,
-                                       avoiding badSpots: [CGPoint], earlyControls: [CGPoint]) -> AdScreenItem? {
+                                       avoiding badSpots: [CGPoint], earlyControls: [CGPoint],
+                                       allowLeft: Bool) -> AdScreenItem? {
         let marks = allItems.filter {
             infoGlyphs.contains($0.label.trimmingCharacters(in: .whitespaces).lowercased())
         }
@@ -929,9 +964,58 @@ final class AdAutomationEngine: ObservableObject {
         // 3. A small unlabelled button or image in a top corner. Close buttons
         // sit on the right far more often than on the left, where report and
         // information marks usually are, so the right-most one goes first.
+        // An unlabelled one on the left opened a report sheet that could not
+        // be closed again, so the left only counts when the caller allows it.
         return cornerControls(in: items, width: width, height: height)
             .filter { !isNear(CGPoint(x: $0.centerX, y: $0.centerY), any: earlyControls) }
+            .filter { allowLeft || $0.centerX > width / 2 }
             .max { $0.centerX < $1.centerX }
+    }
+
+    /// Where to try for a close button that nothing on screen announces. The
+    /// report mark on the left has the close button as its mirror image on
+    /// the right, so those spots come first; then the usual corners.
+    private static func probePoints(width: Double, height: Double, leftControls: [CGPoint],
+                                    earlySpots: [CGPoint], badSpots: [CGPoint]) -> [CGPoint] {
+        guard width > 0, height > 0 else { return [] }
+        var points: [CGPoint] = []
+        func add(_ point: CGPoint) {
+            guard point.x > 0, point.y > 0 else { return }
+            if isNear(point, any: badSpots) || isNear(point, any: earlySpots) || isNear(point, any: leftControls) {
+                return
+            }
+            if points.contains(where: { abs($0.x - point.x) < 8 && abs($0.y - point.y) < 8 }) {
+                return
+            }
+            points.append(point)
+        }
+        let leftKnown = leftControls + (earlySpots + badSpots).filter { $0.x < width * 0.3 }
+        for spot in leftKnown {
+            add(CGPoint(x: width - spot.x, y: spot.y))
+        }
+        for point in cornerPoints(width: width, height: height) {
+            // With a known control on the left, a tap there can only go wrong.
+            if !leftKnown.isEmpty && point.x < width / 2 {
+                continue
+            }
+            add(point)
+        }
+        return points
+    }
+
+    /// Marks of an ad network whose top-left control reports the ad. The
+    /// network's name is read from its logo, so near misses count too.
+    private static func isReportNetworkMark(_ label: String) -> Bool {
+        let lowered = label.lowercased()
+        return lowered.contains("mutebtn") || lowered.contains("tegra") || lowered.contains("iegra")
+    }
+
+    /// App icons and the Dock: the home screen, not the game.
+    private static func looksLikeHomeScreen(_ elements: [AdScreenItem]) -> Bool {
+        if elements.contains(where: { $0.type == "Other" && $0.label == "Dock" }) {
+            return true
+        }
+        return elements.filter { $0.type == "Icon" }.count >= 3
     }
 
     private static func cornerPoints(width: Double, height: Double) -> [CGPoint] {
