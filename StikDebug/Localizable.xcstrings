@@ -9550,6 +9550,23 @@
           }
         }
       }
+    },
+    "The control app is not responding. Open the iCTRL runner again.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The control app is not responding. Open the iCTRL runner again."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "控制程式沒有回應。請重新打開 iCTRL runner，再按開始。"
+          }
+        }
+      }
     }
   },
   "version": "1.3"
