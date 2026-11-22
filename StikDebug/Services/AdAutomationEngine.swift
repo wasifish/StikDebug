@@ -171,6 +171,8 @@ final class AdAutomationEngine: ObservableObject {
     private var pendingDetails: [String] = []
     private var previousTranscript: [String] = []
     private var runStartedAt = Date()
+    /// Calls to the control app that failed since the screen was last read.
+    private var failedCalls = 0
 
     private let client = AdRunnerClient.shared
     private static let tickInterval: TimeInterval = 2
@@ -264,6 +266,7 @@ final class AdAutomationEngine: ObservableObject {
         adsFinished = 0
         recentLog = []
         runStartedAt = Date()
+        failedCalls = 0
         screenshotCount = 0
         stopNote = nil
         lastNotes = [:]
@@ -370,6 +373,10 @@ final class AdAutomationEngine: ObservableObject {
         // an ad that is on screen although this run did not start it.
         var lastIdleLook = Date.distantPast
         var adoptions = 0
+        // The control app can stop answering in the middle of a run.
+        var stalls = 0
+        var recoveries = 0
+        var lastRecovery = Date.distantPast
 
         log("start; observeOnly=\(config.observeOnly) probe=\(config.probeCorners) maxAd=\(config.maxAdSeconds)s "
             + "game='\(config.gameName)' start=\(config.startKeywords) confirm=\(config.confirmKeywords) "
@@ -392,6 +399,12 @@ final class AdAutomationEngine: ObservableObject {
                 log("no tick for \(Int(gap))s")
             }
             lastTick = tickStart
+            if failedCalls > 0 || consecutiveErrors >= 2,
+               recoveries < 5, Date().timeIntervalSince(lastRecovery) >= 30 {
+                recoveries += 1
+                lastRecovery = Date()
+                await recoverRunner(game: game)
+            }
             do {
                 let info = try await client.call("device_info")
                 consecutiveErrors = 0
@@ -457,6 +470,22 @@ final class AdAutomationEngine: ObservableObject {
                     }
 
                     let texts = await readText()
+                    if failedCalls > 0 {
+                        // The screen could not be read. Nothing is decided on
+                        // nothing; the top of the loop tries to recover.
+                        stalls += 1
+                        if stalls >= 2 {
+                            status = "The control app is not responding. Open the iCTRL runner again.".localized
+                        }
+                        if stalls >= 6 {
+                            log("the screen could not be read 6 times in a row; stopping")
+                            stopNote = "The control app is not responding. Open the iCTRL runner again.".localized
+                            break
+                        }
+                        try? await Task.sleep(nanoseconds: 2_000_000_000)
+                        continue
+                    }
+                    stalls = 0
                     var elements: [AdScreenItem] = []
                     let startInSight = Self.firstMatch(in: texts, keywords: config.startKeywords) != nil
                     if inAd || config.observeOnly {
@@ -631,6 +660,11 @@ final class AdAutomationEngine: ObservableObject {
                         recentCloseSpots.append(spot)
                     }
                     let storePageShowing = items.contains(where: { $0.type == "NavigationBar" })
+                    // The game reports its whole screen as one text view. With
+                    // nothing else in sight this is the game's own page, where a
+                    // cross closes the page with the start button.
+                    let onlyGameView = elements.isEmpty || elements.allSatisfy { $0.type == "TextView" }
+                    let adLikely = adOnScreen || storePageShowing || !onlyGameView
                     if storePageShowing, let probe = lastProbe, Date().timeIntervalSince(lastProbeAt) < 10 {
                         // That spot is part of the ad, not its close button.
                         storeSpots.append(probe)
@@ -840,7 +874,7 @@ final class AdAutomationEngine: ObservableObject {
                     } else if countdownLive {
                         // Closing while the countdown runs gives up the reward.
                         note("waiting: countdown '\(lastCountdownLabel)' is showing", kind: "wait")
-                    } else if adElapsed >= Self.minimumAdSeconds,
+                    } else if adElapsed >= Self.minimumAdSeconds, adLikely,
                               let closeItem = Self.closeCandidate(in: items, width: width, height: height,
                                                                   avoiding: badSpots + recentCloseSpots,
                                                                   earlyControls: earlySpots,
@@ -869,7 +903,7 @@ final class AdAutomationEngine: ObservableObject {
                         lastProbe = cross
                         lastProbeAt = Date()
                         closeTaps += 1
-                    } else if adElapsed >= Self.minimumAdSeconds, openStoreTaps < 3,
+                    } else if adElapsed >= Self.minimumAdSeconds, adLikely, openStoreTaps < 3,
                               Date().timeIntervalSince(lastOpenStoreTap) >= 10,
                               let openStore = Self.firstMatch(in: items, keywords: Self.openStoreWords) {
                         // No close button yet, and the ad offers its store page:
@@ -883,7 +917,7 @@ final class AdAutomationEngine: ObservableObject {
                               adElapsed >= TimeInterval(config.maxAdSeconds) || countdownGone
                                   || (openStoreTaps > 0 && Date().timeIntervalSince(lastOpenStoreTap) >= 8)
                                   || (storeClosedAt.map { Date().timeIntervalSince($0) >= 4 } ?? false),
-                              width > 0, height > 0, !storePageShowing, storeSpots.count < 5,
+                              width > 0, height > 0, adLikely, !storePageShowing, storeSpots.count < 5,
                               !probePoints.isEmpty {
                         let point = probePoints[probeIndex % probePoints.count]
                         probeIndex += 1
@@ -993,6 +1027,7 @@ final class AdAutomationEngine: ObservableObject {
         do {
             // The accurate level is required: the fast one cannot read Chinese.
             let result = try await client.call("screen_text", timeout: 25)
+            failedCalls = 0
             let rawItems = (result["items"] as? [[String: Any]]) ?? []
             return rawItems.compactMap { raw in
                 guard let label = raw["label"] as? String,
@@ -1004,6 +1039,7 @@ final class AdAutomationEngine: ObservableObject {
                                     x: x, y: y, width: width, height: height)
             }
         } catch {
+            failedCalls += 1
             log("screen_text failed: \(error.localizedDescription)")
             return []
         }
@@ -1019,6 +1055,7 @@ final class AdAutomationEngine: ObservableObject {
             guard let source = result["source"] as? String else { return [] }
             return Self.parseElements(source)
         } catch {
+            failedCalls += 1
             log("page_source failed: \(error.localizedDescription)")
             return []
         }
@@ -1581,8 +1618,32 @@ final class AdAutomationEngine: ObservableObject {
             _ = try await client.call("tap", ["x": Double(point.x), "y": Double(point.y), "settle": false, "fast": true],
                                       timeout: 20)
         } catch {
+            failedCalls += 1
             log("tap failed: \(error.localizedDescription)")
         }
+    }
+
+    /// The control app stopped answering calls that touch the screen. Its own
+    /// log says which call is stuck; its reset call clears that state without
+    /// going through the stuck queue, and bringing the game to the front again
+    /// makes it reconnect to the screen.
+    private func recoverRunner(game: String?) async {
+        log("the control app is not answering; asking it to reset")
+        if let result = try? await client.call("logs", ["max_elements": 10], timeout: 8),
+           let lines = result["lines"] as? [String] {
+            for line in lines.suffix(10) {
+                log("control app log: " + String(line.prefix(170)))
+            }
+        }
+        if (try? await client.call("reset", [:], timeout: 8)) != nil {
+            log("reset done")
+        } else {
+            log("reset was not answered either")
+        }
+        if let game {
+            _ = try? await client.call("activate_app", ["bundle_id": game], timeout: 20)
+        }
+        failedCalls = 0
     }
 
     /// Takes a sharp picture of the screen and looks for marks in it.
@@ -1596,6 +1657,7 @@ final class AdAutomationEngine: ObservableObject {
             }
             return Self.icons(in: image, width: geometry.width, height: geometry.height)
         } catch {
+            failedCalls += 1
             log("picture for marks failed: \(error.localizedDescription)")
             return []
         }
@@ -1611,6 +1673,7 @@ final class AdAutomationEngine: ObservableObject {
             try data.write(to: folder.appendingPathComponent(name))
             log("screenshot \(name)")
         } catch {
+            failedCalls += 1
             log("screenshot failed: \(error.localizedDescription)")
         }
     }
