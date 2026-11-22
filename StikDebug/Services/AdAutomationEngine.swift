@@ -39,6 +39,37 @@ private enum AdNetwork: String {
     case appLovin
     case pangle
     case mintegral
+    case liftoff
+}
+
+/// A small light mark found in the picture near a top corner. Position and
+/// size are in the points the player sees.
+private struct AdIcon {
+    var isCross: Bool
+    var x: Double
+    var y: Double
+    var width: Double
+    var height: Double
+}
+
+/// Connected light pixels while the picture is searched, in pixels of the
+/// searched region.
+private struct AdGlyph {
+    var minX: Int
+    var minY: Int
+    var maxX: Int
+    var maxY: Int
+    var points: [Int]
+    var parts: Int
+
+    mutating func absorb(_ other: AdGlyph) {
+        minX = min(minX, other.minX)
+        minY = min(minY, other.minY)
+        maxX = max(maxX, other.maxX)
+        maxY = max(maxY, other.maxY)
+        points += other.points
+        parts += other.parts
+    }
 }
 
 /// One thing on screen that could be tapped: recognised text or an
@@ -329,6 +360,12 @@ final class AdAutomationEngine: ObservableObject {
         var lastProbe: CGPoint?
         var lastProbeAt = Date.distantPast
         var network = AdNetwork.unknown
+        // What the last look at the picture found.
+        var crossSpots: [CGPoint] = []
+        var markSpots: [CGPoint] = []
+        var lastIconScan = Date.distantPast
+        var crossTaps: [CGPoint] = []
+        var probeTaps: [CGPoint] = []
 
         log("start; observeOnly=\(config.observeOnly) probe=\(config.probeCorners) maxAd=\(config.maxAdSeconds)s "
             + "game='\(config.gameName)' start=\(config.startKeywords) confirm=\(config.confirmKeywords) "
@@ -508,6 +545,47 @@ final class AdAutomationEngine: ObservableObject {
                     if inAd, items.contains(where: { Self.isReportNetworkMark($0.label) }) {
                         cautiousLeft = true
                     }
+                    // Look at the picture for a close mark that neither
+                    // accessibility nor text recognition reports. Only while an
+                    // ad's own view is on screen: the game has crosses too.
+                    let adOnScreen = elements.contains(where: { $0.type == "WebView" })
+                        || Self.adNetwork(in: items) != .unknown
+                    let adFrame: CGRect? = elements.first(where: { $0.type == "WebView" }).map {
+                        CGRect(x: $0.centerX - $0.width / 2, y: $0.centerY - $0.height / 2,
+                               width: $0.width, height: $0.height)
+                    }
+                    if !adOnScreen {
+                        crossSpots = []
+                        markSpots = []
+                    } else if inAd, !config.observeOnly, config.probeCorners, startItem == nil, !countdownLive,
+                              adElapsed >= 10, Date().timeIntervalSince(lastIconScan) >= 5,
+                              !items.contains(where: { $0.type == "NavigationBar" }) {
+                        lastIconScan = Date()
+                        let icons = await findIcons()
+                        crossSpots = icons.filter { $0.isCross }.map { CGPoint(x: $0.x, y: $0.y) }
+                        // Of the other marks only the one nearest each side edge
+                        // is worth a try; the rest is the ad's own picture.
+                        let plain = icons.filter {
+                            !$0.isCross && max($0.width, $0.height) >= 8 && min($0.width, $0.height) >= 5
+                        }
+                        let frameMinX = Double(adFrame?.minX ?? 0)
+                        let frameMaxX = Double(adFrame?.maxX ?? CGFloat(width))
+                        var marks: [CGPoint] = []
+                        if let right = plain.filter({ $0.x > width / 2 }).max(by: { $0.x < $1.x }),
+                           frameMaxX - right.x <= 60 {
+                            marks.append(CGPoint(x: right.x, y: right.y))
+                        }
+                        if let left = plain.filter({ $0.x <= width / 2 }).min(by: { $0.x < $1.x }),
+                           left.x - frameMinX <= 60 {
+                            marks.append(CGPoint(x: left.x, y: left.y))
+                        }
+                        markSpots = marks
+                        let seen = icons.map {
+                            "\($0.isCross ? "cross" : "mark") \(Int($0.x)),\(Int($0.y)) \(Int($0.width))x\(Int($0.height))"
+                        }
+                        note("picture: " + (seen.isEmpty ? "no marks near the top corners" : seen.joined(separator: "; ")),
+                             kind: "icons")
+                    }
                     if inAd, network == .unknown {
                         network = Self.adNetwork(in: items)
                         if network != .unknown {
@@ -518,13 +596,26 @@ final class AdAutomationEngine: ObservableObject {
                     let probePoints = Self.probePoints(width: width, height: height, leftControls: leftControls,
                                                        earlySpots: earlySpots, badSpots: badSpots,
                                                        network: network, countdownSpot: countdownSpot,
-                                                       storeSpots: storeSpots, avoidLeft: leftIsSuspect)
+                                                       storeSpots: storeSpots, avoidLeft: leftIsSuspect,
+                                                       marks: markSpots, adFrame: adFrame, tried: probeTaps)
                     // The control app can keep naming the game after the player
                     // went to the home screen.
                     let onHomeScreen = Self.looksLikeHomeScreen(elements)
                     // A page that was just closed can still be reported for a
                     // moment, and the screen underneath has other controls in
                     // the same place. So the same spot waits before a second tap.
+                    // A cross found in the picture that has not been used up.
+                    var usableCross: CGPoint?
+                    for spot in crossSpots {
+                        if Self.isNear(spot, any: badSpots) || Self.isNear(spot, any: leftControls) {
+                            continue
+                        }
+                        if Self.count(of: spot, in: storeSpots) >= 1 || Self.count(of: spot, in: crossTaps) >= 3 {
+                            continue
+                        }
+                        usableCross = spot
+                        break
+                    }
                     var recentCloseSpots: [CGPoint] = []
                     if let spot = lastCandidateTap, Date().timeIntervalSince(lastCandidateTapAt) < 8 {
                         recentCloseSpots.append(spot)
@@ -589,6 +680,11 @@ final class AdAutomationEngine: ObservableObject {
                             lastProbe = nil
                             lastProbeAt = Date.distantPast
                             network = .unknown
+                            crossSpots = []
+                            markSpots = []
+                            lastIconScan = Date.distantPast
+                            crossTaps = []
+                            probeTaps = []
                             status = "Ad started. Waiting for the close button…".localized
                         } else if let confirmItem {
                             log("action: tap confirm \(confirmItem.summary)")
@@ -711,6 +807,16 @@ final class AdAutomationEngine: ObservableObject {
                             // close button comes after it.
                             storeClosedAt = Date()
                         }
+                    } else if config.probeCorners, adElapsed >= 10, !storePageShowing, storeSpots.count < 5,
+                              Date().timeIntervalSince(lastProbeAt) >= 3, let cross = usableCross {
+                        await saveScreenshot(tag: "cross")
+                        log("action: tap the cross seen in the picture at \(Int(cross.x)),\(Int(cross.y))")
+                        await tap(x: cross.x, y: cross.y)
+                        crossTaps.append(cross)
+                        lastCloseTap = cross
+                        lastProbe = cross
+                        lastProbeAt = Date()
+                        closeTaps += 1
                     } else if adElapsed >= Self.minimumAdSeconds, openStoreTaps < 3,
                               Date().timeIntervalSince(lastOpenStoreTap) >= 10,
                               let openStore = Self.firstMatch(in: items, keywords: Self.openStoreWords) {
@@ -735,6 +841,7 @@ final class AdAutomationEngine: ObservableObject {
                         lastCloseTap = point
                         lastProbe = point
                         lastProbeAt = Date()
+                        probeTaps.append(point)
                         closeTaps += 1
                     } else if adElapsed >= Self.abandonAdSeconds {
                         log("gave up on this ad after \(Int(adElapsed))s")
@@ -1107,7 +1214,9 @@ final class AdAutomationEngine: ObservableObject {
     private static func probePoints(width: Double, height: Double, leftControls: [CGPoint],
                                     earlySpots: [CGPoint], badSpots: [CGPoint],
                                     network: AdNetwork = .unknown, countdownSpot: CGPoint? = nil,
-                                    storeSpots: [CGPoint] = [], avoidLeft: Bool = false) -> [CGPoint] {
+                                    storeSpots: [CGPoint] = [], avoidLeft: Bool = false,
+                                    marks: [CGPoint] = [], adFrame: CGRect? = nil,
+                                    tried: [CGPoint] = []) -> [CGPoint] {
         guard width > 0, height > 0 else { return [] }
         var points: [CGPoint] = []
         func add(_ point: CGPoint, storeLimit: Int = 1) {
@@ -1116,8 +1225,11 @@ final class AdAutomationEngine: ObservableObject {
                 return
             }
             // A spot that brought up the store page is part of the ad.
-            let storeOpens = storeSpots.filter { abs($0.x - point.x) < 8 && abs($0.y - point.y) < 8 }.count
-            if storeOpens >= storeLimit {
+            if count(of: point, in: storeSpots) >= storeLimit {
+                return
+            }
+            // Three tries without effect are enough for one spot.
+            if count(of: point, in: tried) >= 3 {
                 return
             }
             if points.contains(where: { abs($0.x - point.x) < 8 && abs($0.y - point.y) < 8 }) {
@@ -1130,6 +1242,11 @@ final class AdAutomationEngine: ObservableObject {
         if let spot = countdownSpot, spot.x > width / 2, spot.y < height * 0.3 {
             add(spot)
         }
+        if let frame = adFrame, frame.width > 100, frame.height > 100 {
+            // The ad's own top right corner. Its view is often smaller than
+            // the screen, and it moves once a store page was shown.
+            add(CGPoint(x: Double(frame.maxX) - 29, y: Double(frame.minY) + 30))
+        }
         if network == .appLovin, width > height {
             // Its skip control sits at the top left and is not exposed to
             // accessibility or text recognition. It may show the store page
@@ -1141,6 +1258,14 @@ final class AdAutomationEngine: ObservableObject {
         for spot in leftKnown {
             add(CGPoint(x: width - spot.x, y: spot.y))
         }
+        for mark in marks {
+            // A mark seen in the picture. On the left only where that side is
+            // not known for its report control.
+            if mark.x < width / 2 && network != .appLovin && (avoidLeft || !leftKnown.isEmpty) {
+                continue
+            }
+            add(mark)
+        }
         for point in cornerPoints(width: width, height: height) {
             // With a known control on the left, a tap there can only go wrong.
             if (avoidLeft || !leftKnown.isEmpty) && point.x < width / 2 {
@@ -1149,6 +1274,190 @@ final class AdAutomationEngine: ObservableObject {
             add(point)
         }
         return points
+    }
+
+    /// How many of the spots are this point, give or take a few points.
+    private static func count(of point: CGPoint, in spots: [CGPoint]) -> Int {
+        spots.filter { abs($0.x - point.x) < 8 && abs($0.y - point.y) < 8 }.count
+    }
+
+    /// Small light marks near the top corners of the picture: a cross, an
+    /// arrow, a skip sign. `width` and `height` are the screen as the player
+    /// sees it; the picture may arrive squeezed and is stretched back.
+    private static func icons(in image: CGImage, width: Double, height: Double) -> [AdIcon] {
+        let scale = 2.0
+        let pixelWidth = Int(width * scale)
+        let pixelHeight = Int(height * scale)
+        guard pixelWidth > 40, pixelHeight > 40 else { return [] }
+        var pixels = [UInt8](repeating: 0, count: pixelWidth * pixelHeight * 4)
+        let drawn = pixels.withUnsafeMutableBytes { buffer -> Bool in
+            guard let context = CGContext(
+                data: buffer.baseAddress, width: pixelWidth, height: pixelHeight,
+                bitsPerComponent: 8, bytesPerRow: pixelWidth * 4,
+                space: CGColorSpaceCreateDeviceRGB(),
+                bitmapInfo: CGImageAlphaInfo.noneSkipLast.rawValue
+            ) else {
+                return false
+            }
+            context.interpolationQuality = .medium
+            context.draw(image, in: CGRect(x: 0, y: 0, width: pixelWidth, height: pixelHeight))
+            return true
+        }
+        guard drawn else { return [] }
+
+        // Searched: this far down, and this far in from each side.
+        let top = min(pixelHeight, Int(135 * scale))
+        let side = min(pixelWidth / 2, Int(150 * scale))
+        let maximumSide = Int(34 * scale)
+        let gap = Int(5 * scale)
+        let margin = Int(5 * scale)
+        var found: [AdIcon] = []
+
+        for originX in [0, pixelWidth - side] {
+            // Light, colourless pixels.
+            var mask = [Bool](repeating: false, count: side * top)
+            for y in 0..<top {
+                for x in 0..<side {
+                    let offset = (y * pixelWidth + originX + x) * 4
+                    let red = Int(pixels[offset])
+                    let green = Int(pixels[offset + 1])
+                    let blue = Int(pixels[offset + 2])
+                    let luminance = (red * 299 + green * 587 + blue * 114) / 1000
+                    let spread = max(red, max(green, blue)) - min(red, min(green, blue))
+                    mask[y * side + x] = luminance >= 185 && spread <= 45
+                }
+            }
+
+            // Connected pixels.
+            var seen = [Bool](repeating: false, count: side * top)
+            var groups: [AdGlyph] = []
+            for start in 0..<(side * top) {
+                if !mask[start] || seen[start] {
+                    continue
+                }
+                var part = AdGlyph(minX: start % side, minY: start / side, maxX: start % side, maxY: start / side,
+                                   points: [], parts: 1)
+                var stack = [start]
+                seen[start] = true
+                while let index = stack.popLast() {
+                    part.points.append(index)
+                    let x = index % side
+                    let y = index / side
+                    part.minX = min(part.minX, x)
+                    part.maxX = max(part.maxX, x)
+                    part.minY = min(part.minY, y)
+                    part.maxY = max(part.maxY, y)
+                    for dy in -1...1 {
+                        for dx in -1...1 {
+                            let nextX = x + dx
+                            let nextY = y + dy
+                            if nextX < 0 || nextX >= side || nextY < 0 || nextY >= top {
+                                continue
+                            }
+                            let next = nextY * side + nextX
+                            if mask[next] && !seen[next] {
+                                seen[next] = true
+                                stack.append(next)
+                            }
+                        }
+                    }
+                }
+                // Specks, and anything too large to be part of a mark.
+                if part.points.count >= 6, part.maxX - part.minX <= maximumSide, part.maxY - part.minY <= maximumSide {
+                    groups.append(part)
+                }
+            }
+            // A picture full of light specks says nothing.
+            if groups.count > 150 {
+                continue
+            }
+
+            // Parts that belong together: the bar of a skip sign, a dot.
+            var merged = true
+            while merged {
+                merged = false
+                search: for first in 0..<groups.count {
+                    for second in (first + 1)..<groups.count {
+                        let a = groups[first]
+                        let b = groups[second]
+                        if b.minX <= a.maxX + gap, b.maxX >= a.minX - gap,
+                           b.minY <= a.maxY + gap, b.maxY >= a.minY - gap {
+                            groups[first].absorb(b)
+                            groups.remove(at: second)
+                            merged = true
+                            break search
+                        }
+                    }
+                }
+            }
+
+            for group in groups {
+                let groupWidth = group.maxX - group.minX + 1
+                let groupHeight = group.maxY - group.minY + 1
+                let widthPoints = Double(groupWidth) / scale
+                let heightPoints = Double(groupHeight) / scale
+                let longer = max(widthPoints, heightPoints)
+                let shorter = min(widthPoints, heightPoints)
+                if longer < 7 || longer > 34 || shorter < 2.5 || group.parts > 4 {
+                    continue
+                }
+                let fill = Double(group.points.count) / Double(groupWidth * groupHeight)
+                if fill < 0.08 || fill > 0.8 {
+                    continue
+                }
+                // Cut off by the edge of the searched area.
+                if group.minY <= 0 || group.maxY >= top - 1 {
+                    continue
+                }
+                // It has to stand alone: little else that is light around it.
+                let ringMinX = max(0, group.minX - margin)
+                let ringMinY = max(0, group.minY - margin)
+                let ringMaxX = min(side - 1, group.maxX + margin)
+                let ringMaxY = min(top - 1, group.maxY + margin)
+                var light = 0
+                for y in ringMinY...ringMaxY {
+                    for x in ringMinX...ringMaxX where mask[y * side + x] {
+                        light += 1
+                    }
+                }
+                let ringArea = (ringMaxX - ringMinX + 1) * (ringMaxY - ringMinY + 1) - groupWidth * groupHeight
+                let ringRatio = Double(light - group.points.count) / Double(max(1, ringArea))
+                if ringRatio > 0.06 {
+                    continue
+                }
+                // Shape, from how full each cell of a 6 by 6 grid is.
+                var grid = [Int](repeating: 0, count: 36)
+                for index in group.points {
+                    let column = min(5, (index % side - group.minX) * 6 / groupWidth)
+                    let row = min(5, (index / side - group.minY) * 6 / groupHeight)
+                    grid[row * 6 + column] += 1
+                }
+                let cell = max(1.0, Double(groupWidth) / 6.0 * Double(groupHeight) / 6.0)
+                var diagonal = 0.0
+                for step in 0..<6 {
+                    diagonal += Double(grid[step * 6 + step]) / cell
+                    diagonal += Double(grid[step * 6 + (5 - step)]) / cell
+                }
+                diagonal /= 12.0
+                let edgeCells = [2, 3, 32, 33, 12, 18, 17, 23]
+                var edges = 0.0
+                for edgeCell in edgeCells {
+                    edges += Double(grid[edgeCell]) / cell
+                }
+                edges /= 8.0
+                let aspect = widthPoints / heightPoints
+                // Tall and thin is an exclamation or information mark.
+                if aspect < 0.5 {
+                    continue
+                }
+                let isCross = aspect >= 0.7 && aspect <= 1.4 && diagonal >= 0.45 && edges <= diagonal * 0.35
+                let centerX = (Double(originX) + Double(group.minX + group.maxX) / 2.0) / scale
+                let centerY = Double(group.minY + group.maxY) / 2.0 / scale
+                found.append(AdIcon(isCross: isCross, x: centerX, y: centerY,
+                                    width: widthPoints, height: heightPoints))
+            }
+        }
+        return found
     }
 
     /// Which network's player is on screen, from its accessibility elements.
@@ -1160,6 +1469,9 @@ final class AdAutomationEngine: ObservableObject {
             }
             if label == "pangle" {
                 return .pangle
+            }
+            if label.contains("nemo ad renderer") || label.contains("liftoff") || label.contains("vungle") {
+                return .liftoff
             }
             if label.contains("mutebtn") {
                 return .mintegral
@@ -1218,6 +1530,22 @@ final class AdAutomationEngine: ObservableObject {
                                       timeout: 20)
         } catch {
             log("tap failed: \(error.localizedDescription)")
+        }
+    }
+
+    /// Takes a sharp picture of the screen and looks for marks in it.
+    private func findIcons() async -> [AdIcon] {
+        guard geometry.width > 0, geometry.height > 0 else { return [] }
+        do {
+            let result = try await client.call("screenshot", ["scale": 3, "quality": 0.5], timeout: 25)
+            guard let base64 = result["data"] as? String, let data = Data(base64Encoded: base64),
+                  let image = UIImage(data: data)?.cgImage else {
+                return []
+            }
+            return Self.icons(in: image, width: geometry.width, height: geometry.height)
+        } catch {
+            log("picture for marks failed: \(error.localizedDescription)")
+            return []
         }
     }
 
