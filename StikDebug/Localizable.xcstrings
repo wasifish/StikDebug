@@ -9584,6 +9584,23 @@
           }
         }
       }
+    },
+    "Restarting the control app…": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restarting the control app…"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在重新啟動控制程式…"
+          }
+        }
+      }
     }
   },
   "version": "1.3"
