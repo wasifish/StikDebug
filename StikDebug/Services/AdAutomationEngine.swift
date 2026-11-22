@@ -366,6 +366,10 @@ final class AdAutomationEngine: ObservableObject {
         var lastIconScan = Date.distantPast
         var crossTaps: [CGPoint] = []
         var probeTaps: [CGPoint] = []
+        // Outside an ad the elements are only read now and then, to notice
+        // an ad that is on screen although this run did not start it.
+        var lastIdleLook = Date.distantPast
+        var adoptions = 0
 
         log("start; observeOnly=\(config.observeOnly) probe=\(config.probeCorners) maxAd=\(config.maxAdSeconds)s "
             + "game='\(config.gameName)' start=\(config.startKeywords) confirm=\(config.confirmKeywords) "
@@ -454,7 +458,11 @@ final class AdAutomationEngine: ObservableObject {
 
                     let texts = await readText()
                     var elements: [AdScreenItem] = []
+                    let startInSight = Self.firstMatch(in: texts, keywords: config.startKeywords) != nil
                     if inAd || config.observeOnly {
+                        elements = await readElements()
+                    } else if !startInSight, Date().timeIntervalSince(lastIdleLook) >= 6 {
+                        lastIdleLook = Date()
                         elements = await readElements()
                     }
 
@@ -475,12 +483,14 @@ final class AdAutomationEngine: ObservableObject {
                     let items = texts.map { geometry.toContent($0) } + elements
                     let startItem = Self.firstMatch(in: items, keywords: config.startKeywords)
                     let loweredStart = config.startKeywords.map { $0.lowercased() }
-                    let confirmItem = Self.firstMatch(
-                        in: items.filter { item in
-                            !loweredStart.contains(where: { item.label.lowercased().contains($0) })
-                        },
-                        keywords: config.confirmKeywords
-                    )
+                    // The whole label has to match, or a word such as "領取"
+                    // also catches "全部領取" on some other page of the game.
+                    let loweredConfirm = Set(config.confirmKeywords.map { $0.lowercased() })
+                    let confirmItem = items.first { item in
+                        let label = item.label.trimmingCharacters(in: .whitespaces).lowercased()
+                        return loweredConfirm.contains(label)
+                            && !loweredStart.contains(where: { label.contains($0) })
+                    }
 
                     // Countdown bookkeeping for the ad on screen. The game's own
                     // page (start button showing) has timers too; those do not count.
@@ -651,7 +661,48 @@ final class AdAutomationEngine: ObservableObject {
                     } else if !inAd {
                         // Right after an ad the game shows its reward window; a
                         // tap on the start button then goes nowhere.
-                        if let startItem, Date().timeIntervalSince(lastAdEnded) >= 5 {
+                        if startItem == nil, adoptions < 2, adOnScreen || storePageShowing {
+                            // An ad is showing although this run did not start it:
+                            // left over from before, or started by hand. How long it
+                            // has been playing is unknown; a countdown still counts.
+                            adoptions += 1
+                            log("an ad is already on screen; taking it from here")
+                            phase = .ad(startedAt: Date().addingTimeInterval(-12))
+                            probeIndex = 0
+                            closeTaps = 0
+                            lastCloseTap = nil
+                            dismissTaps = 0
+                            earlySpots = []
+                            sawCountdown = false
+                            countdownGoneSince = nil
+                            lastCountdownLabel = ""
+                            lastCountdownValue = nil
+                            lastCountdownProgress = Date.distantPast
+                            countdownFirstSeen = nil
+                            openStoreTaps = 0
+                            lastOpenStoreTap = Date.distantPast
+                            storeClosedAt = nil
+                            cautiousLeft = false
+                            lastCandidateTap = nil
+                            lastCandidateTapAt = Date.distantPast
+                            // Spots are only meaningful within one ad.
+                            badSpots = []
+                            countdownSpot = nil
+                            countdownEnds = Date.distantPast
+                            storeSpots = []
+                            lastProbe = nil
+                            lastProbeAt = Date.distantPast
+                            network = .unknown
+                            crossSpots = []
+                            markSpots = []
+                            lastIconScan = Date.distantPast
+                            crossTaps = []
+                            probeTaps = []
+                            status = "Ad started. Waiting for the close button…".localized
+                        } else if startItem == nil, adOnScreen || storePageShowing {
+                            note("an ad is on screen and could not be closed", kind: "wait")
+                            status = "Could not close this ad. Close it by hand.".localized
+                        } else if let startItem, Date().timeIntervalSince(lastAdEnded) >= 5 {
                             log("action: tap start \(startItem.summary)")
                             await tap(x: startItem.centerX, y: startItem.centerY)
                             phase = .ad(startedAt: Date())
@@ -712,6 +763,7 @@ final class AdAutomationEngine: ObservableObject {
                                 + "total \(adsFinished), empty starts \(emptyStarts)")
                             phase = .idle
                             lastAdEnded = Date()
+                            adoptions = 0
                             status = String(format: "Ads finished: %lld".localized, adsFinished)
                             if emptyStarts >= 4 {
                                 // The button no longer starts an ad: the daily limit
