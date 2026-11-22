@@ -9482,6 +9482,40 @@
           }
         }
       }
+    },
+    "Copy the Log": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy the Log"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "複製記錄"
+          }
+        }
+      }
+    },
+    "Paste it into the chat to report a problem.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paste it into the chat to report a problem."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "貼到對話裡就能回報問題。"
+          }
+        }
+      }
     }
   },
   "version": "1.3"
