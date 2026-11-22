@@ -375,6 +375,15 @@ final class AdAutomationEngine: ObservableObject {
         var lastProbeWasCross = false
         // How long the ad says it lasts, when it says so.
         var statedLength = 0.0
+        // AppLovin's skip mark sits at the top left and hides itself a few
+        // seconds after the last touch. It comes back when the ad is touched
+        // or the store page it opened is closed.
+        var skipTaps = 0
+        var lastSkipTap = Date.distantPast
+        var mirrorPending = false
+        var mirrorTaps = 0
+        var nudges = 0
+        var lastNudge = Date.distantPast
         // Outside an ad the elements are only read now and then, to notice
         // an ad that is on screen although this run did not start it.
         var lastIdleLook = Date.distantPast
@@ -708,7 +717,7 @@ final class AdAutomationEngine: ObservableObject {
                     }
 
                     if (inAd || config.observeOnly),
-                       Date().timeIntervalSince(lastScreenshot) >= 6 {
+                       Date().timeIntervalSince(lastScreenshot) >= (config.observeOnly ? 6 : 20) {
                         lastScreenshot = Date()
                         await saveScreenshot(tag: inAd ? "ad" : "watch")
                     }
@@ -761,6 +770,12 @@ final class AdAutomationEngine: ObservableObject {
                             crossStoreSpots = []
                             lastProbeWasCross = false
                             statedLength = 0
+                            skipTaps = 0
+                            lastSkipTap = Date.distantPast
+                            mirrorPending = false
+                            mirrorTaps = 0
+                            nudges = 0
+                            lastNudge = Date.distantPast
                             status = "Ad started. Waiting for the close button…".localized
                         } else if startItem == nil, adOnScreen || storePageShowing {
                             note("an ad is on screen and could not be closed", kind: "wait")
@@ -802,6 +817,12 @@ final class AdAutomationEngine: ObservableObject {
                             crossStoreSpots = []
                             lastProbeWasCross = false
                             statedLength = 0
+                            skipTaps = 0
+                            lastSkipTap = Date.distantPast
+                            mirrorPending = false
+                            mirrorTaps = 0
+                            nudges = 0
+                            lastNudge = Date.distantPast
                             status = "Ad started. Waiting for the close button…".localized
                         } else if let confirmItem {
                             log("action: tap confirm \(confirmItem.summary)")
@@ -903,6 +924,18 @@ final class AdAutomationEngine: ObservableObject {
                         log("action: tap store done \(done.summary)")
                         await tap(x: done.centerX, y: done.centerY)
                         storeClosedAt = Date()
+                        if network == .appLovin, config.probeCorners, width > height, skipTaps < 10 {
+                            // The skip mark shows for a few seconds once the
+                            // store page is gone.
+                            try? await Task.sleep(nanoseconds: 1_300_000_000)
+                            log("action: tap the skip mark's place right after the store page")
+                            await tap(x: 27, y: 82)
+                            skipTaps += 1
+                            lastSkipTap = Date()
+                            mirrorPending = true
+                            lastProbe = nil
+                            lastIconScan = Date.distantPast
+                        }
                     } else if countdownLive {
                         // Closing while the countdown runs gives up the reward.
                         note("waiting: countdown '\(lastCountdownLabel)' is showing", kind: "wait")
@@ -924,6 +957,18 @@ final class AdAutomationEngine: ObservableObject {
                             // That was the store page an ad opened. The ad's own
                             // close button comes after it.
                             storeClosedAt = Date()
+                            if network == .appLovin, config.probeCorners, width > height, skipTaps < 10 {
+                                // The skip mark shows for a few seconds once the
+                                // store page is gone.
+                                try? await Task.sleep(nanoseconds: 1_300_000_000)
+                                log("action: tap the skip mark's place right after the store page")
+                                await tap(x: 27, y: 82)
+                                skipTaps += 1
+                                lastSkipTap = Date()
+                                mirrorPending = true
+                                lastProbe = nil
+                                lastIconScan = Date.distantPast
+                            }
                         }
                     } else if config.probeCorners, adElapsed >= 10, !storePageShowing,
                               Date().timeIntervalSince(lastProbeAt) >= 3, let cross = usableCross {
@@ -936,6 +981,45 @@ final class AdAutomationEngine: ObservableObject {
                         lastProbeWasCross = true
                         lastProbeAt = Date()
                         closeTaps += 1
+                    } else if config.probeCorners, network == .appLovin, width > height, adOnScreen,
+                              !storePageShowing, mirrorPending, mirrorTaps < 2,
+                              Date().timeIntervalSince(lastSkipTap) >= 2,
+                              Date().timeIntervalSince(lastSkipTap) < 15 {
+                        // After the skip mark this network's close button shows
+                        // up across from it.
+                        mirrorPending = false
+                        mirrorTaps += 1
+                        log("action: tap across from the skip mark at \(Int(width - 27)),82")
+                        await tap(x: width - 27, y: 82)
+                        lastProbe = nil
+                        lastProbeAt = Date()
+                        closeTaps += 1
+                    } else if config.probeCorners, network == .appLovin, width > height, adOnScreen,
+                              !storePageShowing, nudges < 8,
+                              Date().timeIntervalSince(lastNudge) >= 6,
+                              Date().timeIntervalSince(lastSkipTap) >= 5,
+                              adElapsed >= TimeInterval(config.maxAdSeconds) || countdownGone || storeClosedAt != nil {
+                        // The mark is hidden. A touch on its place brings it back,
+                        // or brings up the store page, and closing that page
+                        // brings it back too.
+                        nudges += 1
+                        lastNudge = Date()
+                        log("action: touch the skip mark's place at 27,82 (\(nudges))")
+                        await tap(x: 27, y: 82)
+                        lastProbe = nil
+                        closeTaps += 1
+                        try? await Task.sleep(nanoseconds: 900_000_000)
+                        let after = await readElements()
+                        if after.contains(where: { $0.type == "NavigationBar" }) {
+                            log("the store page came up; the mark is tapped once that page is closed")
+                        } else if Self.adNetwork(in: after) == .appLovin {
+                            log("action: tap the skip mark's place again while it shows")
+                            await tap(x: 27, y: 82)
+                            skipTaps += 1
+                            lastSkipTap = Date()
+                            mirrorPending = true
+                            lastIconScan = Date.distantPast
+                        }
                     } else if adElapsed >= Self.minimumAdSeconds, adLikely, openStoreTaps < 3,
                               Date().timeIntervalSince(lastOpenStoreTap) >= 10,
                               let openStore = Self.firstMatch(in: items, keywords: Self.openStoreWords) {
@@ -951,6 +1035,7 @@ final class AdAutomationEngine: ObservableObject {
                                   || (openStoreTaps > 0 && Date().timeIntervalSince(lastOpenStoreTap) >= 8)
                                   || (storeClosedAt.map { Date().timeIntervalSince($0) >= 4 } ?? false),
                               width > 0, height > 0, adLikely, !storePageShowing, storeSpots.count < 5,
+                              network != .appLovin || nudges >= 8 || width <= height,
                               !probePoints.isEmpty {
                         let point = probePoints[probeIndex % probePoints.count]
                         probeIndex += 1
@@ -1648,6 +1733,10 @@ final class AdAutomationEngine: ObservableObject {
 
     /// Taps a point given in content points.
     private func tap(x: Double, y: Double) async {
+        guard failedCalls == 0 else {
+            log("  tap skipped: the control app did not answer")
+            return
+        }
         let point = geometry.toDevice(x: x, y: y)
         if geometry.rotated {
             log("  tap \(Int(x)),\(Int(y)) on screen = \(Int(point.x)),\(Int(point.y)) on the device")
@@ -1676,19 +1765,64 @@ final class AdAutomationEngine: ObservableObject {
         if (try? await client.call("reset", [:], timeout: 8)) != nil {
             log("reset done")
         } else {
-            log("reset was not answered either")
+            // Its log still answers while every other call hangs: the control
+            // app is stuck inside itself, and only a new start helps.
+            log("reset was not answered either; closing the control app and opening it again")
+            status = "Restarting the control app…".localized
+            if let problem = await relaunchRunner() {
+                log("the control app could not be opened again from here: \(problem)")
+            } else {
+                var version: String?
+                for _ in 0..<20 {
+                    try? await Task.sleep(nanoseconds: 2_000_000_000)
+                    version = await client.runnerVersion()
+                    if version != nil { break }
+                }
+                log(version == nil ? "the control app did not come back" : "the control app is back")
+                // It needs a moment before it can bring another app forward.
+                try? await Task.sleep(nanoseconds: 3_000_000_000)
+            }
         }
         if let game {
-            _ = try? await client.call("activate_app", ["bundle_id": game], timeout: 20)
+            for attempt in 1...3 {
+                if (try? await client.call("activate_app", ["bundle_id": game], timeout: 20)) != nil {
+                    break
+                }
+                log("the game could not be brought back (try \(attempt))")
+                try? await Task.sleep(nanoseconds: 3_000_000_000)
+            }
         }
         failedCalls = 0
     }
 
+    /// Closes the control app and starts it again over this app's own
+    /// connection to the device, the way the app list starts an app. Returns
+    /// what went wrong, or nil.
+    private func relaunchRunner() async -> String? {
+        await withCheckedContinuation { (continuation: CheckedContinuation<String?, Never>) in
+            DispatchQueue.global(qos: .userInitiated).async {
+                let apps: [String: String]
+                do {
+                    apps = try JITEnableContext.shared.getAllApps()
+                } catch {
+                    continuation.resume(returning: error.localizedDescription)
+                    return
+                }
+                guard let bundleID = apps.keys.first(where: { $0.lowercased().contains("ictrl.uitests") }) else {
+                    continuation.resume(returning: "the control app is not in the list of installed apps")
+                    return
+                }
+                let started = JITEnableContext.shared.launchAppWithoutDebug(bundleID, logger: nil)
+                continuation.resume(returning: started ? nil : "it did not start")
+            }
+        }
+    }
+
     /// Takes a sharp picture of the screen and looks for marks in it.
     private func findIcons() async -> [AdIcon] {
-        guard geometry.width > 0, geometry.height > 0 else { return [] }
+        guard geometry.width > 0, geometry.height > 0, failedCalls == 0 else { return [] }
         do {
-            let result = try await client.call("screenshot", ["scale": 3, "quality": 0.5], timeout: 25)
+            let result = try await client.call("screenshot", ["scale": 3, "quality": 0.5], timeout: 12)
             guard let base64 = result["data"] as? String, let data = Data(base64Encoded: base64),
                   let image = UIImage(data: data)?.cgImage else {
                 return []
@@ -1702,9 +1836,9 @@ final class AdAutomationEngine: ObservableObject {
     }
 
     private func saveScreenshot(tag: String) async {
-        guard screenshotCount < Self.maximumScreenshots, let folder = sessionFolder else { return }
+        guard failedCalls == 0, screenshotCount < Self.maximumScreenshots, let folder = sessionFolder else { return }
         do {
-            let result = try await client.call("screenshot", ["scale": 1, "quality": 0.5], timeout: 25)
+            let result = try await client.call("screenshot", ["scale": 1, "quality": 0.5], timeout: 12)
             guard let base64 = result["data"] as? String, let data = Data(base64Encoded: base64) else { return }
             screenshotCount += 1
             let name = String(format: "%03d-%@.jpg", screenshotCount, tag)
