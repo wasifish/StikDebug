@@ -205,6 +205,8 @@ final class AdAutomationEngine: ObservableObject {
     private static let countdownWords = ["秒", "sec", "剩", "remaining", "reward in"]
     /// The control of a playable ad that shows the store page; on those ads the
     /// close button only appears after that page was opened and closed.
+    /// Words of the App Store's page for one app.
+    private static let storePageWords = ["則評分", "年齡分級", "排行榜", "開發者"]
     private static let openStoreWords = ["open store", "打開商店", "開啟商店", "前往商店", "skip to store"]
     /// The button that closes the store page. Whole label only.
     private static let storeDoneLabels: Set<String> = ["完成", "done"]
@@ -384,6 +386,15 @@ final class AdAutomationEngine: ObservableObject {
         var mirrorTaps = 0
         var nudges = 0
         var lastNudge = Date.distantPast
+        // The control app can go on answering while it no longer sees any of
+        // the screen's elements.
+        var emptyReads = 0
+        var blindRepairs = 0
+        var lastBlindRepair = Date.distantPast
+        // A store page that is only known from its text.
+        var storeGuesses = 0
+        var lastStoreGuess = Date.distantPast
+        var markTaps = 0
         // Outside an ad the elements are only read now and then, to notice
         // an ad that is on screen although this run did not start it.
         var lastIdleLook = Date.distantPast
@@ -509,6 +520,31 @@ final class AdAutomationEngine: ObservableObject {
                         lastIdleLook = Date()
                         elements = await readElements()
                     }
+                    if inAd {
+                        // Even the game's own page reports one element. None at
+                        // all means the control app lost sight of the screen.
+                        emptyReads = (elements.isEmpty && failedCalls == 0) ? emptyReads + 1 : 0
+                        if emptyReads >= 2, blindRepairs < 3, Date().timeIntervalSince(lastBlindRepair) >= 20 {
+                            blindRepairs += 1
+                            lastBlindRepair = Date()
+                            log("the screen's elements cannot be read; asking the control app to look again")
+                            if let result = try? await client.call("logs", ["max_elements": 8], timeout: 8),
+                               let lines = result["lines"] as? [String] {
+                                for line in lines.suffix(8) {
+                                    log("control app log: " + String(line.prefix(170)))
+                                }
+                            }
+                            _ = try? await client.call("reset", [:], timeout: 8)
+                            if let game {
+                                _ = try? await client.call("activate_app", ["bundle_id": game], timeout: 20)
+                            }
+                            elements = await readElements()
+                            if !elements.isEmpty {
+                                emptyReads = 0
+                                log("the elements can be read again")
+                            }
+                        }
+                    }
 
                     // Work out how the picture is turned, then put everything
                     // into the space the player sees.
@@ -605,6 +641,10 @@ final class AdAutomationEngine: ObservableObject {
                         }
                     }
                     let countdownGone = countdownGoneSince.map { Date().timeIntervalSince($0) >= 3 } ?? false
+                    // The close button takes a moment to show once the countdown
+                    // is over. A guessed tap before that lands on the ad and
+                    // brings up the store page.
+                    let blindHold = countdownGoneSince.map { Date().timeIntervalSince($0) < 5 } ?? false
                     // Small unlabelled controls at the top left. On the ads seen
                     // so far that is the report mark, and it moves when the ad
                     // changes its frame, so it is looked up again every time.
@@ -686,11 +726,30 @@ final class AdAutomationEngine: ObservableObject {
                         usableCross = spot
                         break
                     }
+                    // A mark at the top right that is not a plain cross: a cross
+                    // in a ring, an arrow. It showed up where close buttons go.
+                    var usableMark: CGPoint?
+                    if network != .appLovin, markTaps < 4 {
+                        for spot in markSpots where spot.x > width / 2 {
+                            if Self.isNear(spot, any: badSpots) || Self.count(of: spot, in: storeSpots) >= 1
+                                || Self.count(of: spot, in: probeTaps) >= 2 {
+                                continue
+                            }
+                            usableMark = spot
+                            break
+                        }
+                    }
                     var recentCloseSpots: [CGPoint] = []
                     if let spot = lastCandidateTap, Date().timeIntervalSince(lastCandidateTapAt) < 8 {
                         recentCloseSpots.append(spot)
                     }
                     let storePageShowing = items.contains(where: { $0.type == "NavigationBar" })
+                    // The store page can be up while its buttons cannot be read.
+                    // Its text still gives it away.
+                    let storeWordsSeen = Self.storePageWords.filter { word in
+                        items.contains(where: { $0.label.contains(word) })
+                    }.count
+                    let storeByText = inAd && elements.isEmpty && storeWordsSeen >= 2 && width > height
                     // The game reports its whole screen as one text view. With
                     // nothing else in sight this is the game's own page, where a
                     // cross closes the page with the start button.
@@ -776,6 +835,12 @@ final class AdAutomationEngine: ObservableObject {
                             mirrorTaps = 0
                             nudges = 0
                             lastNudge = Date.distantPast
+                            emptyReads = 0
+                            blindRepairs = 0
+                            lastBlindRepair = Date.distantPast
+                            storeGuesses = 0
+                            lastStoreGuess = Date.distantPast
+                            markTaps = 0
                             status = "Ad started. Waiting for the close button…".localized
                         } else if startItem == nil, adOnScreen || storePageShowing {
                             note("an ad is on screen and could not be closed", kind: "wait")
@@ -823,6 +888,12 @@ final class AdAutomationEngine: ObservableObject {
                             mirrorTaps = 0
                             nudges = 0
                             lastNudge = Date.distantPast
+                            emptyReads = 0
+                            blindRepairs = 0
+                            lastBlindRepair = Date.distantPast
+                            storeGuesses = 0
+                            lastStoreGuess = Date.distantPast
+                            markTaps = 0
                             status = "Ad started. Waiting for the close button…".localized
                         } else if let confirmItem {
                             log("action: tap confirm \(confirmItem.summary)")
@@ -936,6 +1007,17 @@ final class AdAutomationEngine: ObservableObject {
                             lastProbe = nil
                             lastIconScan = Date.distantPast
                         }
+                    } else if storeByText, storeGuesses < 15, Date().timeIntervalSince(lastStoreGuess) >= 3 {
+                        // Its close button is at the top left; where exactly
+                        // depends on how wide the page is shown.
+                        let guesses: [(Double, Double)] = [(42, 81), (98, 81), (60, 46), (116, 46), (70, 81)]
+                        let guess = guesses[storeGuesses % guesses.count]
+                        storeGuesses += 1
+                        lastStoreGuess = Date()
+                        log("action: the store page shows but its buttons cannot be read; "
+                            + "trying its close button at \(Int(guess.0)),\(Int(guess.1))")
+                        await tap(x: guess.0, y: guess.1)
+                        storeClosedAt = Date()
                     } else if countdownLive {
                         // Closing while the countdown runs gives up the reward.
                         note("waiting: countdown '\(lastCountdownLabel)' is showing", kind: "wait")
@@ -980,6 +1062,18 @@ final class AdAutomationEngine: ObservableObject {
                         lastProbe = cross
                         lastProbeWasCross = true
                         lastProbeAt = Date()
+                        closeTaps += 1
+                    } else if config.probeCorners, adElapsed >= 10, adLikely, !storePageShowing,
+                              Date().timeIntervalSince(lastProbeAt) >= 3, let mark = usableMark {
+                        await saveScreenshot(tag: "mark")
+                        log("action: tap the mark seen at the top right, \(Int(mark.x)),\(Int(mark.y))")
+                        await tap(x: mark.x, y: mark.y)
+                        markTaps += 1
+                        lastCloseTap = mark
+                        lastProbe = mark
+                        lastProbeWasCross = false
+                        lastProbeAt = Date()
+                        probeTaps.append(mark)
                         closeTaps += 1
                     } else if config.probeCorners, network == .appLovin, width > height, adOnScreen,
                               !storePageShowing, mirrorPending, mirrorTaps < 2,
@@ -1036,6 +1130,7 @@ final class AdAutomationEngine: ObservableObject {
                                   || (storeClosedAt.map { Date().timeIntervalSince($0) >= 4 } ?? false),
                               width > 0, height > 0, adLikely, !storePageShowing, storeSpots.count < 5,
                               network != .appLovin || nudges >= 8 || width <= height,
+                              !blindHold,
                               !probePoints.isEmpty {
                         let point = probePoints[probeIndex % probePoints.count]
                         probeIndex += 1
