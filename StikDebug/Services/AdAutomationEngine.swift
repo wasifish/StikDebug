@@ -374,6 +374,7 @@ final class AdAutomationEngine: ObservableObject {
         // What the last look at the picture found.
         var crossSpots: [CGPoint] = []
         var markSpots: [CGPoint] = []
+        var marksSeenAt = Date.distantPast
         var lastIconScan = Date.distantPast
         var crossTaps: [CGPoint] = []
         var probeTaps: [CGPoint] = []
@@ -410,7 +411,9 @@ final class AdAutomationEngine: ObservableObject {
         var recoveries = 0
         var lastRecovery = Date.distantPast
 
-        log("start; observeOnly=\(config.observeOnly) probe=\(config.probeCorners) maxAd=\(config.maxAdSeconds)s "
+        let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
+        log("start; version=\(appVersion) observeOnly=\(config.observeOnly) probe=\(config.probeCorners) "
+            + "maxAd=\(config.maxAdSeconds)s "
             + "game='\(config.gameName)' start=\(config.startKeywords) confirm=\(config.confirmKeywords) "
             + "submitReport=\(config.submitReportSheet)")
         status = "Switch to the game now.".localized
@@ -556,8 +559,15 @@ final class AdAutomationEngine: ObservableObject {
                     // into the space the player sees.
                     geometry.deviceWidth = deviceWidth
                     geometry.deviceHeight = deviceHeight
-                    if deviceWidth > 0, deviceHeight > 0, let turned = Self.looksRotated(texts) {
-                        geometry.rotated = turned
+                    if deviceWidth > 0, deviceHeight > 0 {
+                        if let turned = Self.turnFromElements(elements, deviceWidth: deviceWidth) {
+                            geometry.rotated = turned
+                        } else if !inAd || !geometry.rotated, let turned = Self.looksRotated(texts) {
+                            // During an ad the shapes of its text say little: a
+                            // video gives a few garbled words of any shape. They
+                            // may not turn the picture back upright.
+                            geometry.rotated = turned
+                        }
                     }
                     if geometry.rotated, let vote = Self.flipVote(texts: texts, elements: elements, geometry: geometry) {
                         geometry.flipped = vote
@@ -694,7 +704,13 @@ final class AdAutomationEngine: ObservableObject {
                            left.x - frameMinX <= 60 {
                             marks.append(CGPoint(x: left.x, y: left.y))
                         }
-                        markSpots = marks
+                        if !marks.isEmpty {
+                            markSpots = marks
+                            marksSeenAt = Date()
+                        } else if Date().timeIntervalSince(marksSeenAt) >= 12 {
+                            // One look can miss a mark that is still there.
+                            markSpots = []
+                        }
                         let seen = icons.map {
                             "\($0.isCross ? "cross" : "mark") \(Int($0.x)),\(Int($0.y)) \(Int($0.width))x\(Int($0.height))"
                         }
@@ -738,7 +754,7 @@ final class AdAutomationEngine: ObservableObject {
                     if network != .appLovin, markTaps < 4 {
                         for spot in markSpots where spot.x > width / 2 {
                             if Self.isNear(spot, any: badSpots) || Self.count(of: spot, in: storeSpots) >= 1
-                                || Self.count(of: spot, in: probeTaps) >= 2 {
+                                || Self.count(of: spot, in: probeTaps) >= 3 {
                                 continue
                             }
                             usableMark = spot
@@ -1335,6 +1351,24 @@ final class AdAutomationEngine: ObservableObject {
         return nil
     }
 
+    /// How the picture is turned, from the frames of large accessibility
+    /// elements, which are in the points of the picture as the player sees it.
+    /// Nil when no large element is in sight or they disagree.
+    private static func turnFromElements(_ elements: [AdScreenItem], deviceWidth: Double) -> Bool? {
+        var wide = 0
+        var tall = 0
+        for element in elements where element.width >= 200 && element.height >= 40 {
+            if element.width > deviceWidth + 20 {
+                wide += 1
+            } else if element.height > deviceWidth + 20 {
+                tall += 1
+            }
+        }
+        if wide > 0, tall == 0 { return true }
+        if tall > 0, wide == 0 { return false }
+        return nil
+    }
+
     /// Which way round the picture is turned, from texts that show up both as
     /// recognised text and as an accessibility element. Nil when none match.
     private static func flipVote(texts: [AdScreenItem], elements: [AdScreenItem],
@@ -1842,16 +1876,26 @@ final class AdAutomationEngine: ObservableObject {
             log("  tap skipped: the control app did not answer")
             return
         }
-        let point = geometry.toDevice(x: x, y: y)
-        if geometry.rotated {
+        var place = geometry
+        if !place.rotated, place.deviceWidth > 0, x > place.deviceWidth + 1 {
+            // A point this far to the right only exists on a picture that lies
+            // on its side.
+            place.rotated = true
+        }
+        let point = place.toDevice(x: x, y: y)
+        if place.rotated {
             log("  tap \(Int(x)),\(Int(y)) on screen = \(Int(point.x)),\(Int(point.y)) on the device")
         }
         do {
             _ = try await client.call("tap", ["x": Double(point.x), "y": Double(point.y), "settle": false, "fast": true],
                                       timeout: 20)
         } catch {
-            failedCalls += 1
-            log("tap failed: \(error.localizedDescription)")
+            let problem = error.localizedDescription
+            log("tap failed: \(problem)")
+            // A refused point is an answer; the control app is alive.
+            if !problem.contains("out of bounds") {
+                failedCalls += 1
+            }
         }
     }
 
