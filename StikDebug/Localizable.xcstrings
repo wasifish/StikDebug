@@ -9635,6 +9635,23 @@
           }
         }
       }
+    },
+    "Go to these coordinates": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Go to these coordinates"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "前往這個座標"
+          }
+        }
+      }
     }
   },
   "version": "1.3"
