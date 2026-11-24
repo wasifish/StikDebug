@@ -290,6 +290,9 @@ final class AdAutomationEngine: ObservableObject {
     }
 
     func stop() {
+        if isRunning {
+            log("stop pressed")
+        }
         runTask?.cancel()
     }
 
@@ -323,7 +326,10 @@ final class AdAutomationEngine: ObservableObject {
 
     private func run(_ config: AdAutomationConfig) async {
         let ownBundle = Bundle.main.bundleIdentifier ?? ""
-        let deadline = Date().addingTimeInterval(TimeInterval(config.runMinutes * 60))
+        // A run goes on until it is stopped, unless a limit was asked for.
+        let deadline = config.runMinutes > 0
+            ? Date().addingTimeInterval(TimeInterval(config.runMinutes * 60))
+            : Date.distantFuture
         var game: String?
         var phase = Phase.idle
         var lastAdEnded = Date.distantPast
