@@ -542,6 +542,21 @@ private enum CoordinateImportParser {
         sanitized(parseTextCoordinates(from: text))
     }
 
+    /// The one coordinate a search text stands for, when the text is nothing
+    /// but two numbers and punctuation. An address with numbers in it is not
+    /// taken for coordinates.
+    static func typedCoordinate(_ text: String) -> CLLocationCoordinate2D? {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        let allowed = CharacterSet(charactersIn: "0123456789+-.,;()[] \t°，、；（）")
+        guard !trimmed.isEmpty,
+              trimmed.unicodeScalars.allSatisfy({ allowed.contains($0) }),
+              numbers(in: trimmed).count == 2 else {
+            return nil
+        }
+        let coordinates = parseInline(trimmed)
+        return coordinates.count == 1 ? coordinates[0] : nil
+    }
+
     private static func decodedText(from data: Data) -> String? {
         String(data: data, encoding: .utf8)
             ?? String(data: data, encoding: .utf16)
@@ -1037,6 +1052,46 @@ struct LocationSimulationView: View {
         .padding(.top, 8)
     }
 
+    private func typedCoordinateRowBase(_ typed: CLLocationCoordinate2D) -> some View {
+        Button {
+            applyCoordinatesFromSearchText()
+            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+        } label: {
+            HStack(spacing: 10) {
+                Image(systemName: "mappin.and.ellipse")
+                    .foregroundStyle(.red)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Go to these coordinates")
+                        .font(.subheadline)
+                    Text(verbatim: String(format: "%.6f, %.6f", typed.latitude, typed.longitude))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer(minLength: 0)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+
+    @ViewBuilder
+    private func typedCoordinateRow(_ typed: CLLocationCoordinate2D) -> some View {
+        if #available(iOS 26, *) {
+            typedCoordinateRowBase(typed)
+                .glassEffect(in: .rect(cornerRadius: 12))
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
+        } else {
+            typedCoordinateRowBase(typed)
+                .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
+        }
+    }
+
     @ViewBuilder
     private var searchResultsList: some View {
         if #available(iOS 26, *) {
@@ -1110,7 +1165,9 @@ struct LocationSimulationView: View {
                 }
 
             VStack(spacing: 0) {
-                if !searchCompleter.results.isEmpty {
+                if let typed = CoordinateImportParser.typedCoordinate(searchText) {
+                    typedCoordinateRow(typed)
+                } else if !searchCompleter.results.isEmpty {
                     searchResultsList
                 }
 
@@ -1211,7 +1268,12 @@ struct LocationSimulationView: View {
                     .autocorrectionDisabled()
                     .submitLabel(.go)
                     .onChange(of: searchText) { _, newValue in
-                        searchCompleter.update(query: newValue)
+                        if CoordinateImportParser.typedCoordinate(newValue) != nil {
+                            searchCompleter.update(query: "")
+                            searchCompleter.results = []
+                        } else {
+                            searchCompleter.update(query: newValue)
+                        }
                     }
                     .onSubmit {
                         applyCoordinatesFromSearchText()
