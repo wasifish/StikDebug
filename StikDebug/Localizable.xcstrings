@@ -9601,6 +9601,40 @@
           }
         }
       }
+    },
+    "Stop after a set time": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop after a set time"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "到設定的時間就停止"
+          }
+        }
+      }
+    },
+    "The set time is up.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The set time is up."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已到設定的時間。"
+          }
+        }
+      }
     }
   },
   "version": "1.3"
