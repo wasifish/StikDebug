@@ -14,7 +14,6 @@ struct AdAutomationView: View {
     @AppStorage("adObserveOnly") private var observeOnly = false
     @AppStorage("adProbeCorners") private var probeCorners = true
     @AppStorage("adMaxSeconds") private var maxAdSeconds = 45
-    @AppStorage("adRunMinutes") private var runMinutes = 30
     @AppStorage("adSubmitReportSheet") private var submitReportSheet = false
 
     @State private var copied = false
@@ -90,9 +89,6 @@ struct AdAutomationView: View {
                 Stepper(value: $maxAdSeconds, in: 20...120, step: 5) {
                     Text(String(format: "Try the corners after %lld seconds".localized, maxAdSeconds))
                 }
-                Stepper(value: $runMinutes, in: 5...180, step: 5) {
-                    Text(String(format: "Stop after %lld minutes".localized, runMinutes))
-                }
                 Toggle("Press Submit when a report window will not close", isOn: $submitReportSheet)
             } header: {
                 Text("Options")
@@ -115,7 +111,7 @@ struct AdAutomationView: View {
                             observeOnly: observeOnly,
                             probeCorners: probeCorners,
                             maxAdSeconds: maxAdSeconds,
-                            runMinutes: runMinutes,
+                            runMinutes: 0,
                             submitReportSheet: submitReportSheet
                         ))
                     }
