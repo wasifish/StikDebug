@@ -1190,6 +1190,10 @@ final class AdAutomationEngine: ObservableObject {
                 try? await Task.sleep(nanoseconds: UInt64(remaining * 1_000_000_000))
             }
         }
+        if !Task.isCancelled, stopNote == nil, Date() >= deadline {
+            log("the set time of \(config.runMinutes) minutes is up")
+            stopNote = "The set time is up.".localized
+        }
     }
 
     // MARK: - Opening the game
