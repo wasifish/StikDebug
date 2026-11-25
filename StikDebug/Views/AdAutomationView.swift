@@ -11,6 +11,7 @@ struct AdAutomationView: View {
     @AppStorage("adGameName") private var gameName = ""
     @AppStorage("adStartKeywords") private var startKeywords = ""
     @AppStorage("adConfirmKeywords") private var confirmKeywords = ""
+    @AppStorage("adPageKeywords") private var pageKeywords = ""
     @AppStorage("adObserveOnly") private var observeOnly = false
     @AppStorage("adProbeCorners") private var probeCorners = true
     @AppStorage("adMaxSeconds") private var maxAdSeconds = 45
@@ -79,6 +80,9 @@ struct AdAutomationView: View {
                 TextField("Text to tap after the ad (optional)", text: $confirmKeywords)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
+                TextField("Text to tap when the start button is not showing (optional)", text: $pageKeywords)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
             } header: {
                 Text("Buttons")
             } footer: {
@@ -123,7 +127,8 @@ struct AdAutomationView: View {
                             maxAdSeconds: maxAdSeconds,
                             runMinutes: limitRunTime ? runMinutes : 0,
                             submitReportSheet: submitReportSheet,
-                            restartGame: restartGame
+                            restartGame: restartGame,
+                            pageKeywords: AdAutomationConfig.keywords(from: pageKeywords)
                         ))
                     }
                     .disabled(!canStart)
