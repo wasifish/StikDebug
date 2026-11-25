@@ -9686,6 +9686,23 @@
           }
         }
       }
+    },
+    "Text to tap when the start button is not showing (optional)": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Text to tap when the start button is not showing (optional)"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "找不到開始按鈕時要點的文字（選填）"
+          }
+        }
+      }
     }
   },
   "version": "1.3"
