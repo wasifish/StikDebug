@@ -24,6 +24,8 @@ struct AdAutomationConfig {
     /// Press the report sheet's own button when nothing else closes it. Off
     /// unless the player turns it on: it sends a report about the ad.
     var submitReportSheet: Bool = false
+    /// Close the game and open it again when an ad offers nothing to tap.
+    var restartGame: Bool = true
 
     static func keywords(from text: String) -> [String] {
         text.split(whereSeparator: { $0 == "," || $0 == "，" || $0 == "、" || $0 == "\n" })
@@ -165,6 +167,9 @@ final class AdAutomationEngine: ObservableObject {
     private var stopNote: String?
     private var lastNotes: [String: String] = [:]
     private var geometry = AdScreenGeometry()
+    /// Which way round the picture is turned has been worked out once.
+    private var flipKnown = false
+    private var lastTapAt = Date()
     /// The run as text for the clipboard: every main line, and what was on
     /// screen only for the ticks that led to an action.
     private var transcript: [String] = []
@@ -178,6 +183,7 @@ final class AdAutomationEngine: ObservableObject {
     private static let tickInterval: TimeInterval = 2
     private static let minimumAdSeconds: TimeInterval = 5
     private static let abandonAdSeconds: TimeInterval = 240
+    private static let maximumGameRestarts = 6
     private static let maximumScreenshots = 240
     /// A run never sends more reports than this.
     private static let maximumReportSubmits = 5
@@ -273,6 +279,8 @@ final class AdAutomationEngine: ObservableObject {
         stopNote = nil
         lastNotes = [:]
         geometry = AdScreenGeometry()
+        flipKnown = false
+        lastTapAt = Date()
         // A real run is kept when a short one follows, so stopping and
         // starting again does not throw away the log worth reading.
         if transcript.count + pendingDetails.count > 12 {
@@ -375,6 +383,7 @@ final class AdAutomationEngine: ObservableObject {
         var crossSpots: [CGPoint] = []
         var markSpots: [CGPoint] = []
         var marksSeenAt = Date.distantPast
+        var countdownSpotTapAt = Date.distantPast
         var lastIconScan = Date.distantPast
         var crossTaps: [CGPoint] = []
         var probeTaps: [CGPoint] = []
@@ -406,6 +415,8 @@ final class AdAutomationEngine: ObservableObject {
         // an ad that is on screen although this run did not start it.
         var lastIdleLook = Date.distantPast
         var adoptions = 0
+        var gameRestarts = 0
+        var lastGameRestart = Date.distantPast
         // The control app can stop answering in the middle of a run.
         var stalls = 0
         var recoveries = 0
@@ -415,7 +426,7 @@ final class AdAutomationEngine: ObservableObject {
         log("start; version=\(appVersion) observeOnly=\(config.observeOnly) probe=\(config.probeCorners) "
             + "maxAd=\(config.maxAdSeconds)s "
             + "game='\(config.gameName)' start=\(config.startKeywords) confirm=\(config.confirmKeywords) "
-            + "submitReport=\(config.submitReportSheet)")
+            + "submitReport=\(config.submitReportSheet) restartGame=\(config.restartGame)")
         status = "Switch to the game now.".localized
 
         if !config.gameName.isEmpty {
@@ -569,8 +580,11 @@ final class AdAutomationEngine: ObservableObject {
                             geometry.rotated = turned
                         }
                     }
-                    if geometry.rotated, let vote = Self.flipVote(texts: texts, elements: elements, geometry: geometry) {
+                    if geometry.rotated,
+                       let vote = Self.flipVote(texts: texts, elements: elements, geometry: geometry,
+                                                settled: flipKnown) {
                         geometry.flipped = vote
+                        flipKnown = true
                     }
                     note("screen: content \(Int(geometry.width))x\(Int(geometry.height)) "
                          + "rotated=\(geometry.rotated) flipped=\(geometry.flipped)", kind: "geometry")
@@ -866,7 +880,16 @@ final class AdAutomationEngine: ObservableObject {
                             status = "Ad started. Waiting for the close button…".localized
                         } else if startItem == nil, adOnScreen || storePageShowing {
                             note("an ad is on screen and could not be closed", kind: "wait")
-                            status = "Could not close this ad. Close it by hand.".localized
+                            if config.restartGame, let game, gameRestarts < Self.maximumGameRestarts,
+                               Date().timeIntervalSince(lastGameRestart) >= 60 {
+                                gameRestarts += 1
+                                lastGameRestart = Date()
+                                await restartGame(game, why: "the ad could not be closed", count: gameRestarts)
+                                lastAdEnded = Date()
+                                adoptions = 0
+                            } else {
+                                status = "Could not close this ad. Close it by hand.".localized
+                            }
                         } else if let startItem, Date().timeIntervalSince(lastAdEnded) >= 5 {
                             log("action: tap start \(startItem.summary)")
                             await tap(x: startItem.centerX, y: startItem.centerY)
@@ -953,6 +976,18 @@ final class AdAutomationEngine: ObservableObject {
                                 break
                             }
                         }
+                    } else if config.restartGame, config.probeCorners, let game,
+                              gameRestarts < Self.maximumGameRestarts,
+                              !countdownLive, adElapsed >= 60, Date().timeIntervalSince(lastTapAt) >= 60,
+                              Date().timeIntervalSince(lastGameRestart) >= 60 {
+                        // A minute without anything to tap: no close button is
+                        // known here and none will come.
+                        gameRestarts += 1
+                        lastGameRestart = Date()
+                        await restartGame(game, why: "nothing could be tapped for a minute", count: gameRestarts)
+                        phase = .idle
+                        lastAdEnded = Date()
+                        adoptions = 0
                     } else if width > 0, height > 0, let sheet = Self.reportSheet(in: items) {
                         // A "report this ad" sheet is open: the control that was
                         // tapped was not a close button. Remember that spot, then
@@ -1154,8 +1189,16 @@ final class AdAutomationEngine: ObservableObject {
                               network != .appLovin || nudges >= 8 || width <= height,
                               !blindHold,
                               !probePoints.isEmpty {
-                        let point = probePoints[probeIndex % probePoints.count]
-                        probeIndex += 1
+                        var point = probePoints[probeIndex % probePoints.count]
+                        if let spot = countdownSpot, let gone = countdownGoneSince, countdownSpotTapAt < gone,
+                           probePoints.contains(where: { $0 == spot }) {
+                            // The close button most often takes the countdown's
+                            // place, so that spot goes first once it ran out.
+                            point = spot
+                            countdownSpotTapAt = Date()
+                        } else {
+                            probeIndex += 1
+                        }
                         await saveScreenshot(tag: "probe")
                         log("action: probe corner \(Int(point.x)),\(Int(point.y))")
                         await tap(x: point.x, y: point.y)
@@ -1169,6 +1212,14 @@ final class AdAutomationEngine: ObservableObject {
                         log("gave up on this ad after \(Int(adElapsed))s")
                         phase = .idle
                         lastAdEnded = Date()
+                        if config.restartGame, let game, gameRestarts < Self.maximumGameRestarts,
+                           Date().timeIntervalSince(lastGameRestart) >= 60 {
+                            gameRestarts += 1
+                            lastGameRestart = Date()
+                            await restartGame(game, why: "the ad could not be closed", count: gameRestarts)
+                            lastAdEnded = Date()
+                            adoptions = 0
+                        }
                     }
                 }
             } catch let error as AdRunnerError {
@@ -1372,7 +1423,7 @@ final class AdAutomationEngine: ObservableObject {
     /// Which way round the picture is turned, from texts that show up both as
     /// recognised text and as an accessibility element. Nil when none match.
     private static func flipVote(texts: [AdScreenItem], elements: [AdScreenItem],
-                                 geometry: AdScreenGeometry) -> Bool? {
+                                 geometry: AdScreenGeometry, settled: Bool) -> Bool? {
         var normal = geometry
         normal.flipped = false
         var turned = geometry
@@ -1394,7 +1445,10 @@ final class AdAutomationEngine: ObservableObject {
             let second = turned.toContent(text)
             let firstDistance = hypot(first.centerX - element.centerX, first.centerY - element.centerY)
             let secondDistance = hypot(second.centerX - element.centerX, second.centerY - element.centerY)
-            guard min(firstDistance, secondDistance) < 60 else { continue }
+            // A text near the middle of the screen is in nearly the same place
+            // either way round and says nothing.
+            guard min(firstDistance, secondDistance) < 60,
+                  abs(firstDistance - secondDistance) >= 80 else { continue }
             if firstDistance < secondDistance {
                 normalVotes += 1
             } else {
@@ -1402,7 +1456,15 @@ final class AdAutomationEngine: ObservableObject {
             }
         }
         if normalVotes == turnedVotes { return nil }
-        return turnedVotes > normalVotes
+        let wantsTurned = turnedVotes > normalVotes
+        if settled, wantsTurned != geometry.flipped {
+            // Turning the picture round sends every tap to the opposite
+            // corner. Once it is known, one text is not enough to change it.
+            let inFavour = wantsTurned ? turnedVotes : normalVotes
+            let against = wantsTurned ? normalVotes : turnedVotes
+            if inFavour < 2 || against > 0 { return nil }
+        }
+        return wantsTurned
     }
 
     /// Small unlabelled buttons or images in a top corner.
@@ -1870,12 +1932,37 @@ final class AdAutomationEngine: ObservableObject {
 
     // MARK: - Actions
 
+    /// Closes the game and opens it again: the way out of an ad that offers
+    /// nothing to tap. The reward for that ad is lost; the run goes on once
+    /// the page with the start button is back.
+    private func restartGame(_ game: String, why: String, count: Int) async {
+        await saveScreenshot(tag: "stuck")
+        log("action: closing the game and opening it again (\(why)); "
+            + "restart \(count) of \(Self.maximumGameRestarts)")
+        status = "Restarting the game…".localized
+        do {
+            _ = try await client.call("terminate_app", ["bundle_id": game], timeout: 20)
+        } catch {
+            log("the game could not be closed: \(error.localizedDescription)")
+        }
+        try? await Task.sleep(nanoseconds: 2_000_000_000)
+        do {
+            _ = try await client.call("activate_app", ["bundle_id": game], timeout: 20)
+            log("the game was opened again")
+        } catch {
+            log("the game could not be opened again: \(error.localizedDescription)")
+        }
+        lastTapAt = Date()
+        try? await Task.sleep(nanoseconds: 3_000_000_000)
+    }
+
     /// Taps a point given in content points.
     private func tap(x: Double, y: Double) async {
         guard failedCalls == 0 else {
             log("  tap skipped: the control app did not answer")
             return
         }
+        lastTapAt = Date()
         var place = geometry
         if !place.rotated, place.deviceWidth > 0, x > place.deviceWidth + 1 {
             // A point this far to the right only exists on a picture that lies
