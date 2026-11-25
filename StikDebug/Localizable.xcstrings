@@ -9652,6 +9652,40 @@
           }
         }
       }
+    },
+    "Restart the game when an ad cannot be closed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restart the game when an ad cannot be closed"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "廣告關不掉時重新開啟遊戲"
+          }
+        }
+      }
+    },
+    "Restarting the game…": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restarting the game…"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在重新開啟遊戲…"
+          }
+        }
+      }
     }
   },
   "version": "1.3"
