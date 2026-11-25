@@ -26,6 +26,9 @@ struct AdAutomationConfig {
     var submitReportSheet: Bool = false
     /// Close the game and open it again when an ad offers nothing to tap.
     var restartGame: Bool = true
+    /// Texts to tap when the start button is not on screen: the tab or
+    /// button that leads to its page. Of several, the last one in sight wins.
+    var pageKeywords: [String] = []
 
     static func keywords(from text: String) -> [String] {
         text.split(whereSeparator: { $0 == "," || $0 == "，" || $0 == "、" || $0 == "\n" })
@@ -384,6 +387,10 @@ final class AdAutomationEngine: ObservableObject {
         var markSpots: [CGPoint] = []
         var marksSeenAt = Date.distantPast
         var countdownSpotTapAt = Date.distantPast
+        var lastMarkTapAt = Date.distantPast
+        // Taps on the text that leads to the page with the start button.
+        var pageTaps = 0
+        var lastPageTap = Date.distantPast
         var lastIconScan = Date.distantPast
         var crossTaps: [CGPoint] = []
         var probeTaps: [CGPoint] = []
@@ -426,7 +433,8 @@ final class AdAutomationEngine: ObservableObject {
         log("start; version=\(appVersion) observeOnly=\(config.observeOnly) probe=\(config.probeCorners) "
             + "maxAd=\(config.maxAdSeconds)s "
             + "game='\(config.gameName)' start=\(config.startKeywords) confirm=\(config.confirmKeywords) "
-            + "submitReport=\(config.submitReportSheet) restartGame=\(config.restartGame)")
+            + "submitReport=\(config.submitReportSheet) restartGame=\(config.restartGame) "
+            + "page=\(config.pageKeywords)")
         status = "Switch to the game now.".localized
 
         if !config.gameName.isEmpty {
@@ -446,10 +454,11 @@ final class AdAutomationEngine: ObservableObject {
             }
             lastTick = tickStart
             if failedCalls > 0 || consecutiveErrors >= 2,
-               recoveries < 5, Date().timeIntervalSince(lastRecovery) >= 30 {
+               recoveries < 20, Date().timeIntervalSince(lastRecovery) >= 30 {
                 recoveries += 1
                 lastRecovery = Date()
                 await recoverRunner(game: game)
+                lastTapAt = Date()
             }
             do {
                 let info = try await client.call("device_info")
@@ -697,7 +706,7 @@ final class AdAutomationEngine: ObservableObject {
                         crossSpots = []
                         markSpots = []
                     } else if inAd, !config.observeOnly, config.probeCorners, startItem == nil, !countdownLive,
-                              adElapsed >= 10, Date().timeIntervalSince(lastIconScan) >= 5,
+                              adElapsed >= 10, Date().timeIntervalSince(lastIconScan) >= 3,
                               !items.contains(where: { $0.type == "NavigationBar" }) {
                         lastIconScan = Date()
                         let icons = await findIcons()
@@ -765,10 +774,14 @@ final class AdAutomationEngine: ObservableObject {
                     // A mark at the top right that is not a plain cross: a cross
                     // in a ring, an arrow. It showed up where close buttons go.
                     var usableMark: CGPoint?
-                    if network != .appLovin, markTaps < 4 {
+                    // Only a mark seen after the last tap on one: the close button
+                    // of an end card shows up a few seconds late, and a tap on its
+                    // place before that brings up the store page. That one store
+                    // page does not rule the spot out while the mark is in sight.
+                    if network != .appLovin, markTaps < 6, marksSeenAt > lastMarkTapAt {
                         for spot in markSpots where spot.x > width / 2 {
-                            if Self.isNear(spot, any: badSpots) || Self.count(of: spot, in: storeSpots) >= 1
-                                || Self.count(of: spot, in: probeTaps) >= 3 {
+                            if Self.isNear(spot, any: badSpots) || Self.count(of: spot, in: storeSpots) >= 2
+                                || Self.count(of: spot, in: probeTaps) >= 4 {
                                 continue
                             }
                             usableMark = spot
@@ -891,6 +904,7 @@ final class AdAutomationEngine: ObservableObject {
                                 status = "Could not close this ad. Close it by hand.".localized
                             }
                         } else if let startItem, Date().timeIntervalSince(lastAdEnded) >= 5 {
+                            pageTaps = 0
                             log("action: tap start \(startItem.summary)")
                             await tap(x: startItem.centerX, y: startItem.centerY)
                             phase = .ad(startedAt: Date())
@@ -946,6 +960,16 @@ final class AdAutomationEngine: ObservableObject {
                         } else if let claim = Self.claimButton(in: items, allowUntitled: false) {
                             log("action: tap claim \(claim.summary)")
                             await tap(x: claim.centerX, y: claim.centerY)
+                        } else if startItem == nil, !adOnScreen, !storePageShowing, pageTaps < 12,
+                                  Date().timeIntervalSince(lastPageTap) >= 5,
+                                  Date().timeIntervalSince(lastAdEnded) >= 5,
+                                  let page = Self.pageItem(in: items, keywords: config.pageKeywords) {
+                            // The start button is on another tab or page: the game
+                            // opens on whichever it likes after a restart.
+                            pageTaps += 1
+                            lastPageTap = Date()
+                            log("action: tap \(page.summary) to get to the start button (\(pageTaps))")
+                            await tap(x: page.centerX, y: page.centerY)
                         } else {
                             status = config.startKeywords.isEmpty
                                 ? "Enter the text of the button that starts an ad.".localized
@@ -1126,6 +1150,9 @@ final class AdAutomationEngine: ObservableObject {
                         log("action: tap the mark seen at the top right, \(Int(mark.x)),\(Int(mark.y))")
                         await tap(x: mark.x, y: mark.y)
                         markTaps += 1
+                        lastMarkTapAt = Date()
+                        // Look again right away: the next page has its own mark.
+                        lastIconScan = Date.distantPast
                         lastCloseTap = mark
                         lastProbe = mark
                         lastProbeWasCross = false
@@ -1188,6 +1215,9 @@ final class AdAutomationEngine: ObservableObject {
                               width > 0, height > 0, adLikely, !storePageShowing, storeSpots.count < 5,
                               network != .appLovin || nudges >= 8 || width <= height,
                               !blindHold,
+                              // After a tap on a mark the picture gets a few
+                              // seconds to show the next one before guessing.
+                              Date().timeIntervalSince(lastMarkTapAt) >= 6,
                               !probePoints.isEmpty {
                         var point = probePoints[probeIndex % probePoints.count]
                         if let spot = countdownSpot, let gone = countdownGoneSince, countdownSpotTapAt < gone,
@@ -1388,6 +1418,19 @@ final class AdAutomationEngine: ObservableObject {
             let label = item.label.lowercased()
             return !label.isEmpty && lowered.contains(where: { label.contains($0) })
         }
+    }
+
+    /// The text that leads to the page with the start button. Of several
+    /// keywords the last one in sight is the nearest to that page.
+    private static func pageItem(in items: [AdScreenItem], keywords: [String]) -> AdScreenItem? {
+        for keyword in keywords.reversed() {
+            let lowered = keyword.lowercased()
+            guard !lowered.isEmpty else { continue }
+            if let item = items.first(where: { $0.label.lowercased().contains(lowered) }) {
+                return item
+            }
+        }
+        return nil
     }
 
     /// Whether recognised text runs sideways, which is how a landscape game
