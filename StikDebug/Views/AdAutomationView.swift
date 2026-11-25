@@ -16,6 +16,7 @@ struct AdAutomationView: View {
     @AppStorage("adMaxSeconds") private var maxAdSeconds = 45
     @AppStorage("adSubmitReportSheet") private var submitReportSheet = false
     @AppStorage("adLimitRunTime") private var limitRunTime = false
+    @AppStorage("adRestartGame") private var restartGame = true
     @AppStorage("adRunMinutes") private var runMinutes = 30
 
     @State private var copied = false
@@ -97,6 +98,7 @@ struct AdAutomationView: View {
                         Text(String(format: "Stop after %lld minutes".localized, runMinutes))
                     }
                 }
+                Toggle("Restart the game when an ad cannot be closed", isOn: $restartGame)
                 Toggle("Press Submit when a report window will not close", isOn: $submitReportSheet)
             } header: {
                 Text("Options")
@@ -120,7 +122,8 @@ struct AdAutomationView: View {
                             probeCorners: probeCorners,
                             maxAdSeconds: maxAdSeconds,
                             runMinutes: limitRunTime ? runMinutes : 0,
-                            submitReportSheet: submitReportSheet
+                            submitReportSheet: submitReportSheet,
+                            restartGame: restartGame
                         ))
                     }
                     .disabled(!canStart)
